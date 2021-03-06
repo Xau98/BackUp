@@ -70,11 +70,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginTop="50dp">
-       <Button
-       android:layout_width="150dp"
-       android:layout_height="40dp"
-       android:text="Đăng nhập "
-       android:id="@+id/bt_login"/>
+        <Button
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:text="Đăng nhập "
+            android:id="@+id/bt_login"/>
 
         <com.facebook.login.widget.LoginButton
             android:id="@+id/loginFB_button"
@@ -104,14 +104,6 @@
             android:visibility="gone"
             android:layout_height="40dp"
             android:text="Đăng xuất " />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:orientation="horizontal">
-
-
     </LinearLayout>
 
 </LinearLayout>
