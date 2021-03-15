@@ -17,10 +17,13 @@ TextView textView;
         if(extras == null){
             return;
         }
-        textView= findViewById(R.id.token);
+        textView= findViewById(R.id.email_account);
         String token = extras.getString("token");
         if(token!=null){
           textView.setText("KQ :"+ token);
         }
     }
+
+    // Bkav TienNVh :init
+
 }
