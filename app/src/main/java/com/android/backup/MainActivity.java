@@ -19,6 +19,8 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +47,8 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -62,6 +66,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class MainActivity extends Activity {
     CallbackManager callbackManager;
@@ -76,7 +83,10 @@ public class MainActivity extends Activity {
     public  static String PATH_ROOT = Environment.getExternalStorageDirectory().toString();
     public static final String ID_CLIENT_GG="797362158064-h1cjks1abj7vqphiu6rc0429jsd3puet.apps.googleusercontent.com";
     public static final  String TOKENT_CLIENT = "tokent_client";
-
+    public static final int MSG_LOGIN=1;
+    Callback callback;
+    Handler mHandler;
+    String mJsonData;
     Button bt_login;
     SignInButton loginGG;//Google
     LoginButton loginFB;//Facebook
@@ -99,7 +109,7 @@ public class MainActivity extends Activity {
              setContentView(R.layout.activity_main);
 
 
-        bt_login = findViewById(R.id.bt_login);
+        bt_login = findViewById(R.id.bt_loginAC);
         loginGG = findViewById(R.id.loginGG_button);
         loginGG.setSize(SignInButton.SIZE_STANDARD);
         loginFB = (LoginButton) findViewById(R.id.loginFB_button);
@@ -145,6 +155,43 @@ public class MainActivity extends Activity {
             }
         });
 
+        mHandler =  new Handler(){
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                switch (msg.what){
+                    case MSG_LOGIN:
+                        try {
+                            JSONObject Jobject = new JSONObject(mJsonData);
+                            Intent intent = new Intent(getBaseContext(), HomePage.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+
+
+                            startActivity(intent);
+                            Toast.makeText(getBaseContext(), "Đăng nhập thành công :"+Jobject.getInt("id"),Toast.LENGTH_SHORT).show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        break;
+                }
+            }
+        };
+
+
+        callback = new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()){
+                    mJsonData = response.body().string();
+                    mHandler.sendEmptyMessage(MSG_LOGIN);
+                }
+            }
+        };
 
 
     }
@@ -257,7 +304,24 @@ public class MainActivity extends Activity {
         Toast.makeText(MainActivity.this, "Đăng nhập Account", Toast.LENGTH_SHORT).show();
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
-        new Lichterkette().execute(username,password);
+        if (RequestToServer.isNetworkConnected(this)){
+           /* JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("username", mUsername.getText().toString());
+                jsonObject.put("password",mPassword.getText().toString());
+                String path ="loginaccount";
+                RequestToServer.post(path, jsonObject, callback);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }*/
+            Intent intent = new Intent(getBaseContext(), HomePage.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        } else {
+            Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
+        }
+
+        //new Lichterkette().execute(username,password);
     }
 
     // Bkav TienNVh : login FB
