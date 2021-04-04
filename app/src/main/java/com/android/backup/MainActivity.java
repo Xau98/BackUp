@@ -220,8 +220,8 @@ public class MainActivity extends Activity {
         View alertLayout = inflater.inflate(R.layout.choose_flie_backup, null);
         RecyclerView recyclerView = alertLayout.findViewById(R.id.recyleview_list_file);
         mListAllFile = loadFile(PATH_ROOT);
-        AdapterListFile adapterListFile=new AdapterListFile(this, mListAllFile);
-        recyclerView.setAdapter(adapterListFile);
+        /*AdapterListFile adapterListFile=new AdapterListFile(this, mListAllFile);
+        recyclerView.setAdapter(adapterListFile);*/
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("< Choose File >");
@@ -264,7 +264,7 @@ public class MainActivity extends Activity {
     CheckBox mCheckBox;
     // Bkav TienNVh : `TODO: sửa lại cách hiện thị
     private void handleCheckbox(View view){
-        mCheckBox= view.findViewById(R.id.text_name);
+        mCheckBox= view.findViewById(R.id.checkbox);
         mSetTimeUpdate = view.findViewById(R.id.set_time_update);
         mCheckBox.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -305,6 +305,7 @@ public class MainActivity extends Activity {
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
         if (RequestToServer.isNetworkConnected(this)){
+            Log.d(TAG, "onLoginAcoount: ");
            /* JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("username", mUsername.getText().toString());
@@ -313,7 +314,16 @@ public class MainActivity extends Activity {
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }*/
+            }
+            SharedPreferences sharedPref =  getContext().getSharedPreferences(SHAREPREFENCE,  MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("id", ID);
+            editor.putString("name", name);
+            editor.putString("token", token);
+            editor.putString("email", email);
+            editor.putString("date_create", dateCreate);
+            editor.commit();
+            */
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
