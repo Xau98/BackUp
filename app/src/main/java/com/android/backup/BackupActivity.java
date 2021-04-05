@@ -20,8 +20,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class BackupActivity extends AppCompatActivity {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup {
     FragmentStatusBackUp fragmentStatusBackUp;
+    FragmentBackuping fragmentBackuping;
     RecyclerView mRecyclerView;
     ArrayList<ItemFile> mListAllFile;
     Button mBTBackHome;
@@ -30,7 +31,11 @@ public class BackupActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.backup_activity);
-        fragmentStatusBackUp = new FragmentStatusBackUp(true);
+        Dialog dialog= new Dialog();
+        dialog.setConfirmListener(this);
+        fragmentBackuping = new FragmentBackuping();
+        fragmentStatusBackUp = new FragmentStatusBackUp(dialog);
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
 
@@ -48,14 +53,23 @@ public class BackupActivity extends AppCompatActivity {
         mListAllFile = new ArrayList<>();
         for(int i=0;i<10;i++)
             initFile();
-        AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile);
+        AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, true);
         mRecyclerView.setAdapter(adapterListFile);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
 
     }
 
     public void initFile(){
         ItemFile it = new ItemFile(0,"Btalk", "/path_Btalk","icon_btalk","backuping");
          mListAllFile.add(it);
+    }
+
+    @Override
+    public void onConfirm() {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.FagmentBackup, fragmentBackuping).commit();
+        AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, false);
+        mRecyclerView.setAdapter(adapterListFile);
     }
 }

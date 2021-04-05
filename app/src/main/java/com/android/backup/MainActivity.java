@@ -140,14 +140,14 @@ public class MainActivity extends Activity {
                 onLoginAcoount();
             }
         });
-    //========================Login FB============================================
+    //========================Login GG============================================
         loginGG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onLoginGoogle();
             }
         });
-    //=======================Login GG=============================================
+    //=======================Login FB=============================================
         loginFB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -18,9 +18,12 @@ public class FragmentStatusBackUp extends Fragment {
     ImageButton mBTBackup;
     FragmentBackuping mFragmentBackuping;
     boolean isStatus;
-    public FragmentStatusBackUp(boolean a) {
-        isStatus=a;
+    Dialog dialog;
+    public FragmentStatusBackUp(Dialog dialog) {
+        this.dialog =dialog;
+
     }
+
 
     @Nullable
     @Override
@@ -33,32 +36,14 @@ public class FragmentStatusBackUp extends Fragment {
             @Override
             public void onClick(View view) {
                 LayoutInflater inflater = getLayoutInflater();
-                View alertLayout = inflater.inflate(R.layout.dialog_confirm, null);
-                AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
-                alert.setView(alertLayout);
-                alert.setCancelable(false);
-                alert.setNegativeButton("Hủy", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getContext(), "Cancel clicked", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                alert.setPositiveButton("Xác Nhận", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // code for matching password
-                        mFragmentBackuping = new FragmentBackuping();
-                        getChildFragmentManager().beginTransaction()
-                                .replace(R.id.FagmentBackup, mFragmentBackuping).commit();
-
-                    }
-                });
-                alert.show();
+                String title = "Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu";
+               dialog.showDialog(getContext(), inflater, title);
             }
         });
 
        return view;
 
     }
+
+
 }
