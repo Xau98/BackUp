@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()) {
 
-            return;
+
         }
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -142,6 +142,7 @@ public class MainActivity extends Activity {
         bt_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 onLoginAcoount();
             }
         });
@@ -274,7 +275,10 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             }*/
 
-        RequestToServer.get("download",callback);
+            File outputZipFile = new File(handleFile.PATH_ROOT+"/Android/demo.zip");
+            File inputDir = new File( handleFile.PATH_ROOT+"/Android/data");
+           CompressionFile.zipDirectory(inputDir, outputZipFile);
+
 /*
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
