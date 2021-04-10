@@ -1,7 +1,9 @@
 package com.android.backup;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,10 +14,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomePage extends AppCompatActivity implements Dialog.onConfirmBackup {
-TextView mTextView;
+TextView mTextViewEmail;
 Button mListBackup, mSaveNow;
 Switch mAutoBackup;
 
@@ -26,12 +29,13 @@ Switch mAutoBackup;
        /*  Bundle extras = getIntent().getExtras();
         if(extras == null){
             return;
-        }
-       textView= findViewById(R.id.email_account);
-        String token = extras.getString("token");
-        if(token!=null){
-          textView.setText("KQ :"+ token);
         }*/
+       mTextViewEmail= findViewById(R.id.email_account);
+        SharedPreferences sharedPref = getSharedPreferences( MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
+        String email = sharedPref.getString("email", "email");
+        mTextViewEmail.setText(email);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
         mListBackup = findViewById(R.id.list_backup);
         mSaveNow = findViewById(R.id.bt_backup_now);
         mAutoBackup = findViewById(R.id.switch_auto_backup);

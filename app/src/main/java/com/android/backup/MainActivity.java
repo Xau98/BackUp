@@ -15,6 +15,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,7 +55,9 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -78,22 +81,23 @@ public class MainActivity extends Activity {
     private static final String AUTH_TYPE = "rerequest";
     public static final int RC_SIGN_IN = 1;
     public static final int CODE_PERMISSION = 2405;
-    public  static final String TAG="TienNVh";
-    public  static final String SHARED_PRE_TOKEN="com.android.backup.token";
-    public  static String PATH_ROOT = Environment.getExternalStorageDirectory().toString();
-    public static final String ID_CLIENT_GG="797362158064-h1cjks1abj7vqphiu6rc0429jsd3puet.apps.googleusercontent.com";
-    public static final  String TOKENT_CLIENT = "tokent_client";
-    public static final int MSG_LOGIN=1;
+    public static final String TAG = "TienNVh";
+    public static final String SHARED_PRE_TOKEN = "com.android.backup.token";
+    public static final String SHAREPREFENCE = "SHAREPREFENCE_ACCOUNT";
+    public static final String ID_CLIENT_GG = "797362158064-h1cjks1abj7vqphiu6rc0429jsd3puet.apps.googleusercontent.com";
+    public static final String TOKENT_CLIENT = "tokent_client";
+    public static final int MSG_LOGIN = 1;
     Callback callback;
     Handler mHandler;
     String mJsonData;
     Button bt_login;
     SignInButton loginGG;//Google
     LoginButton loginFB;//Facebook
-    EditText mUsername , mPassword;
+    EditText mUsername, mPassword;
     private SharedPreferences mPreferences;
-    ArrayList<FileItem> mListAllFile= new ArrayList<>();
+    ArrayList<FileItem> mListAllFile = new ArrayList<>();
     private boolean mAutheAC = false;
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,27 +105,28 @@ public class MainActivity extends Activity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         if (savedInstanceState != null) {
             String tokent = savedInstanceState.getString(TOKENT_CLIENT);
-            if(account!=null){
-               mAutheAC = decryptToken(tokent,"GG"+account.getId());
+            if (account != null) {
+                mAutheAC = decryptToken(tokent, "GG" + account.getId());
             }
         }
 
-             setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
 
 
         bt_login = findViewById(R.id.bt_loginAC);
         loginGG = findViewById(R.id.loginGG_button);
         loginGG.setSize(SignInButton.SIZE_STANDARD);
         loginFB = (LoginButton) findViewById(R.id.loginFB_button);
-        mUsername= findViewById(R.id.username);
+        mUsername = findViewById(R.id.username);
         mPassword = findViewById(R.id.password);
-    //========================Khoi tao============================================
+        //========================Khoi tao============================================
         mPreferences = getSharedPreferences(SHARED_PRE_TOKEN, MODE_PRIVATE);
         // Bkav TienNVh : Cấp quyền
+         Permission permission = new Permission(this,this);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    CODE_PERMISSION);
+                && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()) {
+
             return;
         }
         // Configure sign-in to request the user's ID, email address, and basic
@@ -133,21 +138,21 @@ public class MainActivity extends Activity {
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-    //========================Login Account=========================================
+        //========================Login Account=========================================
         bt_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onLoginAcoount();
             }
         });
-    //========================Login GG============================================
+        //========================Login GG============================================
         loginGG.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onLoginGoogle();
             }
         });
-    //=======================Login FB=============================================
+        //=======================Login FB=============================================
         loginFB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -155,20 +160,25 @@ public class MainActivity extends Activity {
             }
         });
 
-        mHandler =  new Handler(){
+        mHandler = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
-                switch (msg.what){
+                switch (msg.what) {
                     case MSG_LOGIN:
                         try {
                             JSONObject Jobject = new JSONObject(mJsonData);
+                            SharedPreferences sharedPref =  getSharedPreferences(SHAREPREFENCE,  MODE_PRIVATE);
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString("id", Jobject.getInt("id")+"");
+                            editor.putString("name", Jobject.getString("name"));
+                            editor.putString("token", Jobject.getString("token"));
+                            editor.putString("email", Jobject.getString("email"));
+                            editor.putString("date_create", Jobject.getString("date_create"));
+                            editor.commit();
                             Intent intent = new Intent(getBaseContext(), HomePage.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
-
-
                             startActivity(intent);
-                            Toast.makeText(getBaseContext(), "Đăng nhập thành công :"+Jobject.getInt("id"),Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getBaseContext(), "Đăng nhập thành công :" + Jobject.getInt("id"), Toast.LENGTH_SHORT).show();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -186,13 +196,30 @@ public class MainActivity extends Activity {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()){
-                    mJsonData = response.body().string();
-                    mHandler.sendEmptyMessage(MSG_LOGIN);
+                if (response.isSuccessful()) {
+                    //mJsonData = response.body().string();
+                    InputStream bitmap= response.body().byteStream();
+                    File file = new File(handleFile.PATH_ROOT+"/Android");
+                    copyInputStreamToFile(bitmap,file);
+                   // mHandler.sendEmptyMessage(MSG_LOGIN);
                 }
             }
         };
 
+
+    }
+    public static final int DEFAULT_BUFFER_SIZE = 8192;
+    private static void copyInputStreamToFile(InputStream inputStream, File file)
+            throws IOException {
+
+        // append = false
+        try (FileOutputStream outputStream = new FileOutputStream(file, false)) {
+            int read;
+            byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+        }
 
     }
 
@@ -200,142 +227,65 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == CODE_PERMISSION){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted.
-                Log.d("TienNVh", "onRequestPermissionsResult: OK");
-                mListAllFile = loadFile(PATH_ROOT);
-            } else {
-                // User refused to grant permission.
-                Log.d("TienNVh", "onRequestPermissionsResult: NOT");
-                // Bkav TienNVh : Thoat app
-                finish();
-            }
+
+
+            switch (requestCode){
+                case 2405:
+
+                    if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                         
+                        //resume tasks needing this permission
+                        Log.d("Tiennvh", "onRequestPermissionsResult: ");
+                    }else{
+                        Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                    } 
+                    break;
+              case 2406:
+                  Log.d(TAG, "External storage1");
+                  if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                      Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
+                      //resume tasks needing this permission
+
+                  }else{
+                      Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                  }
+                  break;
+
+
         }
     }
 
-    // Bkav TienNVh :Dialog
-    public void displayAlertDialog() {
-        LayoutInflater inflater = getLayoutInflater();
-        View alertLayout = inflater.inflate(R.layout.choose_flie_backup, null);
-        RecyclerView recyclerView = alertLayout.findViewById(R.id.recyleview_list_file);
-        mListAllFile = loadFile(PATH_ROOT);
-        /*AdapterListFile adapterListFile=new AdapterListFile(this, mListAllFile);
-        recyclerView.setAdapter(adapterListFile);*/
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("< Choose File >");
-        alert.setView(alertLayout);
-        alert.setCancelable(false);
-        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(getBaseContext(), "Cancel clicked", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        alert.setPositiveButton("Backup", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // code for matching password
-
-            }
-        });
-        ViewTreeObserver vto = alertLayout.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    alertLayout.getViewTreeObserver()
-                            .removeOnGlobalLayoutListener(this);
-                } else {
-                    alertLayout.getViewTreeObserver()
-                            .removeGlobalOnLayoutListener(this);
-                }
-                handleCheckbox(alertLayout);
-            }
-        });
-
-        AlertDialog dialog = alert.create();
-        dialog.show();
-    }
-
-    Button mSetTimeUpdate;
-    CheckBox mCheckBox;
-    // Bkav TienNVh : `TODO: sửa lại cách hiện thị
-    private void handleCheckbox(View view){
-        mCheckBox= view.findViewById(R.id.checkbox);
-        mSetTimeUpdate = view.findViewById(R.id.set_time_update);
-        mCheckBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mSetTimeUpdate.setVisibility(View.VISIBLE);
-            }
-        });
-        if(mCheckBox.isSelected()){
-            mSetTimeUpdate.setVisibility(View.VISIBLE);
-
-        }else {
-            mSetTimeUpdate.setVisibility(View.GONE);
-        }
-    }
-
-    // Bkav TienNVh :Load File
-    //TODO: Lọc các thư mục cần thiết để backup (ko up lên cả)
-    private ArrayList<FileItem> loadFile(String path){
-        ArrayList<FileItem> list= new ArrayList<>();
-        File directory = new File(path);
-        File[] files = directory.listFiles();
-        if(files!=null) {
-            for (int i = 0; i < files.length; i++) {
-                list.add(new FileItem(path+"/"+files[i].getName(), 0));
-                //listAllFile.add(new FileItem(list.get(i).getPath(), 3));
-            }
-            return  list;
-        }
-        else {
-           // listAllFile.add(new FileItem(path, 0));
-            return null;
-        }
-    }
 
     // Bkav TienNVh : login Account
-    public  void  onLoginAcoount(){
-        Toast.makeText(MainActivity.this, "Đăng nhập Account", Toast.LENGTH_SHORT).show();
+    public void onLoginAcoount() {
+       
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
-        if (RequestToServer.isNetworkConnected(this)){
-            Log.d(TAG, "onLoginAcoount: ");
-           /* JSONObject jsonObject = new JSONObject();
+        Log.d("Tiennvh", "onLoginAcoount: ");
+        if (RequestToServer.isNetworkConnected(this)) {
+      /*      Log.d(TAG, "onLoginAcoount: ");
+            JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("username", mUsername.getText().toString());
-                jsonObject.put("password",mPassword.getText().toString());
+                jsonObject.put("username", "x");
+                jsonObject.put("password","x");
                 String path ="loginaccount";
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }
-            SharedPreferences sharedPref =  getContext().getSharedPreferences(SHAREPREFENCE,  MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("id", ID);
-            editor.putString("name", name);
-            editor.putString("token", token);
-            editor.putString("email", email);
-            editor.putString("date_create", dateCreate);
-            editor.commit();
-            */
+            }*/
+
+        RequestToServer.get("download",callback);
+/*
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            startActivity(intent);*/
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
         }
-
-        //new Lichterkette().execute(username,password);
     }
 
     // Bkav TienNVh : login FB
-    public void onLoginFacebook(){
+    public void onLoginFacebook() {
         // ========================Bkav TienNVh :API FB===============================
         callbackManager = CallbackManager.Factory.create();
         loginFB.setReadPermissions(Arrays.asList(EMAIL, USER_POSTS));
@@ -357,83 +307,21 @@ public class MainActivity extends Activity {
 
             @Override
             public void onError(FacebookException exception) {
-                Log.e(TAG,"ERROR : "+ exception);
+                Log.e(TAG, "ERROR : " + exception);
             }
         });
     }
 
-    // Bkav TienNVh :TODO xem nhu cau dung server nao
-    //TODO: check kết nối lâu không được thì trả về no internet
-    public void postRequest(String user , String pass ) throws IOException {
-        String urlStr= "https://tiennvh.000webhostapp.com/authenticationAccount.php";
-        String jsonBodyStr="username"+ URLEncoder.encode(user, "UTF-8")
-                +"&password"+ URLEncoder.encode( pass,"UTF-8");
-        URL url = new URL(urlStr);
-        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setDoOutput(true);
-        httpURLConnection.setRequestMethod("POST");
-        DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-        dataOutputStream.writeBytes(jsonBodyStr);
-        dataOutputStream.flush();
-        dataOutputStream.close();
-        Log.d("TienNVh", "postRequest: "+httpURLConnection.getResponseCode());
-        if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()))) {
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if(line.equals("401")){
-                        Log.d("TienNVh", "postRequest: ERR ");
-                    }
-                    else{
-                        Log.d("TienNVh", "Connect : "+ line);
-                        SharedPreferences.Editor preferencesEditor = mPreferences.edit();
-                        preferencesEditor.putString(TOKENT_CLIENT, line);
-                        preferencesEditor.apply();
-                    }
-
-                }
-            }
-        } else {
-            Log.d("TienNVh", "No Internet");
-            // ... do something with unsuccessful response
-        }
-    }
 
     // Bkav TienNVh :
-    public void onLoginGoogle(){
+    public void onLoginGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-    //=========================
-    class Lichterkette extends AsyncTask<String,Void,String>{
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String username = params[0];
-            String password = params[1];
-            try {
-                postRequest(username, password);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return "loi ket noi";
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            //All your UI operation can be performed here
-            System.out.println(s);
-        }
     }
 
 
     GoogleSignInAccount account;
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -452,23 +340,23 @@ public class MainActivity extends Activity {
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            Log.d("TienNVh", "handleSignInResult: "+ account.getIdToken());
+            Log.d("TienNVh", "handleSignInResult: " + account.getIdToken());
             AccessToken accessToken = AccessToken.getCurrentAccessToken();
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
             LocalDateTime now = LocalDateTime.now();
-            String id =  account.getId();
-            String name =account.getGivenName();
-            String token =  account.getIdToken();
+            String id = account.getId();
+            String name = account.getGivenName();
+            String token = account.getIdToken();
             String date = dtf.format(now);
-            Account addAccount= new Account(id,name, token,date);
+            Account addAccount = new Account(id, name, token, date);
             onCheckDB(addAccount);
-            Log.i("LoginGG: "+date, "ID: "+ id+"//name "+name+ "token"+token);
+            Log.i("LoginGG: " + date, "ID: " + id + "//name " + name + "token" + token);
             Toast.makeText(MainActivity.this, "Đăng nhập GG thành công ", Toast.LENGTH_SHORT).show();
 
         } catch (ApiException | IOException e) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w("TienNvh", "signInResult:failed code=" + e );
+            Log.w("TienNvh", "signInResult:failed code=" + e);
 
         }
     }
@@ -477,16 +365,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // Bkav TienNVh : callback fb
-        if(callbackManager!=null)
-             callbackManager.onActivityResult(requestCode, resultCode, data);
+        if (callbackManager != null)
+            callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("TienNVh", "onActivityResult: "+ resultCode);
+        Log.d("TienNVh", "onActivityResult: " + resultCode);
         // Bkav TienNVh : call back google
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
         }
-        Log.d("TienNVh", "onActivityResult: "+ requestCode);
+        Log.d("TienNVh", "onActivityResult: " + requestCode);
     }
 
     // Bkav TienNVh : getinfor Acoount FB
@@ -503,11 +391,11 @@ public class MainActivity extends Activity {
                                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                                 LocalDateTime now = LocalDateTime.now();
                                 String id = me.optString("id");
-                                String name =me.optString("name");
-                                String token =  accessToken.getToken();
+                                String name = me.optString("name");
+                                String token = accessToken.getToken();
                                 String date = dtf.format(now);
-                                Log.i("LoginFB: "+date, "ID: "+ id+"//name "+name+ "token"+accessToken.getToken());
-                                Account account= new Account(id,name, token,date);
+                                Log.i("LoginFB: " + date, "ID: " + id + "//name " + name + "token" + accessToken.getToken());
+                                Account account = new Account(id, name, token, date);
                                 try {
                                     onCheckDB(account);
                                 } catch (IOException e) {
@@ -525,134 +413,27 @@ public class MainActivity extends Activity {
     }
 
     // Bkav TienNVh : encrypt Bcrypt password
-    private  String encryptPassword(String password) {
-        return  BCrypt.withDefaults().hashToString(12, password.toCharArray());
+    private String encryptPassword(String password) {
+        return BCrypt.withDefaults().hashToString(12, password.toCharArray());
     }
 
     // Bkav TienNVh : decrypt Bcrypt token
-    private boolean decryptToken(String hash, String tokent){
-        BCrypt.Result result= BCrypt.verifyer().verify(tokent.toCharArray(),hash);
+    private boolean decryptToken(String hash, String tokent) {
+        BCrypt.Result result = BCrypt.verifyer().verify(tokent.toCharArray(), hash);
         return result.verified;
     }
 
 
-
     // Bkav TienNVh : Check Database
     public void onCheckDB(Account account) throws IOException {
-             onTransportActivity();
-      //  displayAlertDialog();
+        onTransportActivity();
+        //  displayAlertDialog();
     }
 
     // Bkav TienNVh : transport activity
-    public void onTransportActivity(){
-        Intent intent= new Intent(this,HomePage.class);
+    public void onTransportActivity() {
+        Intent intent = new Intent(this, HomePage.class);
         intent.putExtra("token", "This value one for ActivityTwo ");
-        startActivityForResult(intent,2405);
+        startActivityForResult(intent, 2405);
     }
-
-/*    //==========API Google ==============================
-    // Bkav TienNVh : dang xuat google
-    public void signOut() {
-        mGoogleSignInClient.signOut()
-                .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(MainActivity.this, "Đăng xuất thành công", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }*/
-     /*   StringBuilder sb=null;
-        BufferedReader reader=null;
-        String serverResponse=null;
-        try {
-
-            URL url = new URL("https://tiennvh.000webhostapp.com/test.php");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setConnectTimeout(5000);
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("uploaded_file", "");
-            connection.connect();
-            int statusCode = connection.getResponseCode();
-            //Log.e("statusCode", "" + statusCode);
-            if (statusCode == 200) {
-                sb = new StringBuilder();
-                reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line + "\n");
-                }
-            }
-
-            connection.disconnect();
-            if (sb!=null)
-                serverResponse=sb.toString();
-            Log.d("TienNVh", "doInBackground: "+serverResponse);
-        } catch (Exception e) {
-            Log.d("TienNVh", "doInBackground2: "+e);
-            e.printStackTrace();
-        } finally {
-
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        Log.d("TienNVh", "onCheckDB: "+serverResponse);*/
-    /*URL url =new URL("https://tiennvh.000webhostapp.com/test.php");
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    String urlprocess="55";
-    connection.setRequestMethod("POST");
-
-    connection.setRequestProperty("test", "tiennvh");
-
-    connection.setDoInput(true);
-    DataOutputStream outputStream=new DataOutputStream(connection.getOutputStream());
-    outputStream.writeBytes(urlprocess);
-    outputStream.flush();
-    outputStream.close();
-
-    int reposecode = connection.getResponseCode();
-
-        Log.d("TienNVh", "onCheckDB: "+ reposecode);*/
-
-
-
 }
-// Bkav TienNVh : get Key hash
-      /*   findViewById(R.id.login_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-
-             // Bkav TienNVh : ĐĂng nhập bằng Database MYSQL
-              String username = mUsername.getText().toString();
-               String password = mPassword.getText().toString();
-                new PostToServer( username.trim(),password.trim()).execute("https://tiennvh.000webhostapp.com/request.php");
-            }
-        });
-    }*/
-    /*    try {
-            PackageInfo info = null;
-            try {
-                info = getPackageManager().getPackageInfo(
-                        "com.android.backup",                  //Insert your own package name.
-                        PackageManager.GET_SIGNATURES);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-            for (Signature signature : info.signatures) {
-                MessageDigest md = MessageDigest.getInstance("SHA");
-                md.update(signature.toByteArray());
-                Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
-            }
-        } catch (NoSuchAlgorithmException e) {
-
-        }
-
-    }
-        */

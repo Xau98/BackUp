@@ -2,6 +2,6 @@
 <network-security-config>
     <base-cofig cleartextTrafficPermitted="true"></base-cofig>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">0.0.0.0</domain>
+        <domain includeSubdomains="true">172.36.68.238</domain>
     </domain-config>
 </network-security-config>
