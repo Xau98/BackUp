@@ -63,10 +63,14 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import javax.crypto.NoSuchPaddingException;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import okhttp3.Call;
@@ -143,7 +147,17 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
 
-                onLoginAcoount();
+                try {
+                    onLoginAcoount();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
         //========================Login GG============================================
@@ -258,7 +272,7 @@ public class MainActivity extends Activity {
 
 
     // Bkav TienNVh : login Account
-    public void onLoginAcoount() {
+    public void onLoginAcoount() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
        
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
@@ -274,15 +288,12 @@ public class MainActivity extends Activity {
             } catch (JSONException e) {
                 e.printStackTrace();
             }*/
+           //CompressionFile.unZip(handleFile.PATH_ROOT+"/Android/test2.zip",handleFile.PATH_ROOT+"/Android/obb");
 
-            File outputZipFile = new File(handleFile.PATH_ROOT+"/Android/demo.zip");
-            File inputDir = new File( handleFile.PATH_ROOT+"/Android/data");
-           CompressionFile.zipDirectory(inputDir, outputZipFile);
 
-/*
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);*/
+            startActivity(intent);
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
         }

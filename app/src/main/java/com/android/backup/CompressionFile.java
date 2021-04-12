@@ -11,18 +11,16 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class CompressionFile {
-    public  String OUTPUT_ZIP_FILE = "C:/demo/demo.zip";
-    public  String SOURCE_FOLDER = "C:/demo/data";
+
     public static final byte[] BUFFER = new byte[1024];
 
-   /* public static void main(String[] args) {
-        File outputZipFile = new File(OUTPUT_ZIP_FILE);
-        File inputDir = new File(SOURCE_FOLDER);
-        zipDirectory(inputDir, outputZipFile);
-    }*/
+/*    File outputZipFile = new File(handleFile.PATH_ROOT+"/Android/demo.zip");
+    File inputDir = new File( handleFile.PATH_ROOT+"/Android/data");
+   CompressionFile.zipDirectory(inputDir, outputZipFile);*/
 
     /**
      * Nén tất cả các tập tin và thư mục trong thư mục đầu vào
@@ -99,4 +97,58 @@ public class CompressionFile {
             }
         }
         return allFiles;
-    }}
+    }
+//=============================================giải nén=======================================
+    public static void unZip(String FILE_PATH, String OUTPUT_FOLDER ){
+        //final String OUTPUT_FOLDER = "C:/output";
+        //String FILE_PATH = "C:/test/datas.zip";
+
+        // Tạo thư mục Output nếu nó không tồn tại.
+        File folder = new File(OUTPUT_FOLDER);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        // Tạo một buffer (Bộ đệm).
+        byte[] buffer = new byte[1024];
+
+        ZipInputStream zipIs = null;
+        try {
+            // Tạo đối tượng ZipInputStream để đọc file từ 1 đường dẫn (path).
+            zipIs = new ZipInputStream(new FileInputStream(FILE_PATH));
+
+            ZipEntry entry = null;
+            // Duyệt từng Entry (Từ trên xuống dưới cho tới hết)
+            while ((entry = zipIs.getNextEntry()) != null) {
+                String entryName = entry.getName();
+                String outFileName = OUTPUT_FOLDER + File.separator + entryName;
+                System.out.println("Unzip: " + outFileName);
+
+                if (entry.isDirectory()) {
+                    // Tạo các thư mục.
+                    new File(outFileName).mkdirs();
+                } else {
+                    // Tạo một Stream để ghi dữ liệu vào file.
+                    File file = new File(outFileName);
+                    FileOutputStream fos = new FileOutputStream(file);
+
+                    int len;
+                    // Đọc dữ liệu trên Entry hiện tại.
+                    while ((len = zipIs.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+
+                    fos.close();
+                }
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                zipIs.close();
+            } catch (Exception e) {
+            }
+        }
+    }
+
+}

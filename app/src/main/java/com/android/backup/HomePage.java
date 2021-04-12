@@ -2,6 +2,7 @@ package com.android.backup;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomePage extends AppCompatActivity implements Dialog.onConfirmBackup {
@@ -61,8 +63,12 @@ Switch mAutoBackup;
             @Override
             public void onClick(View view) {
                 LayoutInflater inflater = getLayoutInflater();
-                String title ="Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu";
-                dialog.showDialog(getBaseContext(),inflater , title);
+                String title ="";
+                if(mAutoBackup.isChecked())
+                    title ="Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu tự động";
+                else
+                    title ="Hãy xác nhận bạn tắt quá trình sao lưu dữ liệu tự động";
+                dialog.showDialog(HomePage.this,inflater , title);
             }
         });
 

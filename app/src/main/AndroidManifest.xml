@@ -29,6 +29,7 @@
         <activity
             android:name=".HomePage"
             android:screenOrientation="portrait"
+            android:windowNoTitle ="true"
             android:label="HomePage">
         </activity>
         <activity

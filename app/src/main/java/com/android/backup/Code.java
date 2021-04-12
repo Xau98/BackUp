@@ -1,5 +1,7 @@
 package com.android.backup;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,7 +19,7 @@ public class Code {
 
 
 
-    static void encrypt(String pathInput , String pathOutput ) throws IOException, NoSuchAlgorithmException,
+    public static void encrypt(String pathInput , String pathOutput ) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
         FileInputStream fileInputStream = new FileInputStream(pathInput);
         FileOutputStream fileOutputStream = new FileOutputStream(pathOutput);
