@@ -3,6 +3,7 @@ package com.android.backup;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,21 +22,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup , AdapterItemFile.isChooseFolder {
     FragmentStatusBackUp fragmentStatusBackUp;
     FragmentBackuping fragmentBackuping;
     RecyclerView mRecyclerView;
-    ArrayList<ItemFile> mListAllFile;
+    ArrayList<FileItem> mListAllFile;
     Button mBTBackHome;
-
+    Dialog dialog;
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.backup_activity);
-        Dialog dialog= new Dialog();
+        dialog= new Dialog();
         dialog.setConfirmListener(this);
         fragmentBackuping = new FragmentBackuping();
-        fragmentStatusBackUp = new FragmentStatusBackUp(dialog);
+        fragmentStatusBackUp = new FragmentStatusBackUp(dialog, 0);
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
@@ -56,13 +59,14 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, true);
         mRecyclerView.setAdapter(adapterListFile);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-
+        adapterListFile.setChooseFolder((AdapterItemFile.isChooseFolder) this);
+        mListFileChecked = new ArrayList<>();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void initFile(){
-        ItemFile it = new ItemFile(0,"Btalk", "/path_Btalk","icon_btalk","backuping");
-         mListAllFile.add(it);
+         mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT);
+
     }
 
     @Override
@@ -72,4 +76,18 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, false);
         mRecyclerView.setAdapter(adapterListFile);
     }
+
+    ArrayList <FileItem> mListFileChecked;
+    @Override
+    public void getTotalCapacity(FileItem fileItem , boolean ischecked) {
+        if(handleFile.duplicateFileItem(mListFileChecked,fileItem) && ischecked)
+            mListFileChecked.add(fileItem);
+        if(!ischecked)
+            mListFileChecked = handleFile.removeFileItem(mListFileChecked, fileItem);
+        fragmentStatusBackUp = new FragmentStatusBackUp(dialog, fileItem.getSize());
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
+    }
+
+
 }

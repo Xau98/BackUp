@@ -1,6 +1,15 @@
 package com.android.backup;
 
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 class FileItem {
   //  private String ID;
@@ -27,13 +36,30 @@ class FileItem {
         this.size = size;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public FileItem(String path , int type){
         File file=new File(path);
         name = file.getName();
         this.type = type;
         this.path = path;
         date = file.lastModified();
-        size = file.length();
+        size = getDirectorySizeLegacy(file);
+    }
+
+    public static long getDirectorySizeLegacy(File dir) {
+
+        long length = 0;
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile())
+                    length += file.length();
+                else
+                    length += getDirectorySizeLegacy(file);
+            }
+        }
+        return length;
+
     }
 
     public String getName() {
