@@ -61,6 +61,8 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapterListFile.setChooseFolder((AdapterItemFile.isChooseFolder) this);
         mListFileChecked = new ArrayList<>();
+
+        handleFile.createFolderCompression();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -71,6 +73,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     @Override
     public void onConfirm() {
+
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.FagmentBackup, fragmentBackuping).commit();
         AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, false);

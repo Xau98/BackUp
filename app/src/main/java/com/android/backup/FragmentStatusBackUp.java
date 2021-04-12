@@ -41,17 +41,17 @@ public class FragmentStatusBackUp extends Fragment {
             public void onClick(View view) {
                 LayoutInflater inflater = getLayoutInflater();
                 String title;
-                boolean isData;
+                boolean showconfirm;
                 if(!mShowCapacity.getText().equals("0")) {
                     title = "Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu";
-                    isData = true;
+                    showconfirm = true;
                 }
                 else {
                     title = "Vui lòng chọn thư mục backup ";
-                    isData = false;
+                    showconfirm = false;
                 }
 
-               dialog.showDialog(getContext(), inflater, title);
+               dialog.showDialog(getContext(), inflater, title, showconfirm);
             }
         });
 

@@ -68,7 +68,7 @@ Switch mAutoBackup;
                     title ="Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu tự động";
                 else
                     title ="Hãy xác nhận bạn tắt quá trình sao lưu dữ liệu tự động";
-                dialog.showDialog(HomePage.this,inflater , title);
+                dialog.showDialog(HomePage.this,inflater , title, true);
             }
         });
 

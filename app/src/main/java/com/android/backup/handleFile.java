@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 public class handleFile {
     public  static String PATH_ROOT = Environment.getExternalStorageDirectory().toString();
+    public  static String PATH_FOLDER = PATH_ROOT+"/CompressionFile";
     // Bkav TienNVh :Load File
     //TODO: Lọc các thư mục cần thiết để backup (ko up lên cả)
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -49,6 +50,31 @@ public class handleFile {
             }
         }
         return list;
+    }
+
+    public static void createFolderCompression(){
+        File f=new File(PATH_FOLDER);
+        if(!f.exists())
+        {
+            f.mkdir();
+        }
+        else{
+            Log.d("tiennvh", "createFolderCompression: ");
+        }
+    }
+
+    public static void fileToCompression(String path){
+        try {
+            File afile = new File(path);
+
+            if (afile.renameTo(new File(PATH_FOLDER+"/" + afile.getName()))) {
+                Log.d("Tiennvh", "File is moved successful: ");
+            } else {
+                Log.d("Tiennvh", "File is failed to move!");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
