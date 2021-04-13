@@ -17,7 +17,7 @@ import java.util.zip.ZipOutputStream;
 public class CompressionFile {
 
     public static final byte[] BUFFER = new byte[1024];
-
+    public static final String  PATH_COMPRESSION= handleFile.PATH_ROOT+"/data.zip";
 /*    File outputZipFile = new File(handleFile.PATH_ROOT+"/Android/demo.zip");
     File inputDir = new File( handleFile.PATH_ROOT+"/Android/data");
    CompressionFile.zipDirectory(inputDir, outputZipFile);*/
@@ -27,7 +27,9 @@ public class CompressionFile {
      * @param inputDir Thư mục đầu vào
      * @param outputZipFile Tập tin đầu ra
      */
-    public static void zipDirectory(File inputDir, File outputZipFile) {
+    public static void zipDirectory(String pathInput, String pathOutput) {
+        File outputZipFile = new File(pathOutput);
+        File inputDir = new File( pathInput);
         // Tạo thư mục cha cho file đầu ra (output file).
         outputZipFile.getParentFile().mkdirs();
 

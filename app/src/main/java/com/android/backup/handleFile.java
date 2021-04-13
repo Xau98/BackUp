@@ -21,9 +21,9 @@ public class handleFile {
         File[] files = directory.listFiles();
         if(files!=null) {
             for (int i = 0; i < files.length; i++) {
-
-                list.add(new FileItem(path+"/"+files[i].getName(), 0));
-                //listAllFile.add(new FileItem(list.get(i).getPath(), 3));
+                FileItem fileItem= new FileItem(path+"/"+files[i].getName(), 0);
+                if(fileItem.getSize()>0)
+                     list.add(fileItem );
             }
             return  list;
         }
@@ -31,6 +31,16 @@ public class handleFile {
             // listAllFile.add(new FileItem(path, 0));
             return null;
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static long totalCapacity(ArrayList<FileItem> list){
+        long total =0;
+        for(int i=0;i<list.size();i++){
+             FileItem file = new FileItem(list.get(i).getPath(),0);
+             total = file.getSize();
+        }
+        return total;
     }
 
     //
@@ -74,6 +84,13 @@ public class handleFile {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public  static void deleteFile(String path){
+        File file= new File(path);
+        if(file.exists()){
+            file.delete();
         }
     }
 

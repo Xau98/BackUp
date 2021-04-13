@@ -22,13 +22,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup , AdapterItemFile.isChooseFolder {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup , AdapterItemFile.isChooseFolder, FragmentBackuping.callbackBackup {
     FragmentStatusBackUp fragmentStatusBackUp;
     FragmentBackuping fragmentBackuping;
     RecyclerView mRecyclerView;
     ArrayList<FileItem> mListAllFile;
     Button mBTBackHome;
     Dialog dialog;
+    long mTotalCapacityChecked = 0;
+    ArrayList <FileItem> mListFileChecked;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,7 +38,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         setContentView(R.layout.backup_activity);
         dialog= new Dialog();
         dialog.setConfirmListener(this);
-        fragmentBackuping = new FragmentBackuping();
+
         fragmentStatusBackUp = new FragmentStatusBackUp(dialog, 0);
 
         getSupportFragmentManager().beginTransaction()
@@ -54,15 +56,13 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
         mRecyclerView = findViewById(R.id.recyclerview_backup);
         mListAllFile = new ArrayList<>();
-        for(int i=0;i<10;i++)
-            initFile();
+        initFile();
         AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, true);
         mRecyclerView.setAdapter(adapterListFile);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapterListFile.setChooseFolder((AdapterItemFile.isChooseFolder) this);
         mListFileChecked = new ArrayList<>();
 
-        handleFile.createFolderCompression();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -73,24 +73,32 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     @Override
     public void onConfirm() {
-
+        fragmentBackuping = new FragmentBackuping(mListFileChecked);
+        fragmentBackuping.setCallbackBackup(this);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.FagmentBackup, fragmentBackuping).commit();
-        AdapterItemFile adapterListFile=new AdapterItemFile(this, mListAllFile, false);
+        AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false);
         mRecyclerView.setAdapter(adapterListFile);
     }
 
-    ArrayList <FileItem> mListFileChecked;
     @Override
     public void getTotalCapacity(FileItem fileItem , boolean ischecked) {
-        if(handleFile.duplicateFileItem(mListFileChecked,fileItem) && ischecked)
+        if(handleFile.duplicateFileItem(mListFileChecked,fileItem) && ischecked) {
             mListFileChecked.add(fileItem);
-        if(!ischecked)
+            mTotalCapacityChecked += fileItem.getSize();
+        }
+        if(!ischecked) {
             mListFileChecked = handleFile.removeFileItem(mListFileChecked, fileItem);
-        fragmentStatusBackUp = new FragmentStatusBackUp(dialog, fileItem.getSize());
+            mTotalCapacityChecked -= fileItem.getSize();
+        }
+        fragmentStatusBackUp = new FragmentStatusBackUp(dialog , mTotalCapacityChecked);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
     }
 
 
+    @Override
+    public void onCallbackBackup(boolean isSuccessful) {
+
+    }
 }

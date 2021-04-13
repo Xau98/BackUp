@@ -19,6 +19,10 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
     Boolean aBoolean= true;
     isChooseFolder isChooseFolder;
     long mTotalCapacity;
+
+    String mStatusBackup="đang chuẩn bị";
+
+
     public AdapterItemFile(Context mContext, ArrayList<FileItem> mList, Boolean b) {
         this.mContext = mContext;
         this.mList = mList;
@@ -51,8 +55,6 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
             public void onClick(View v) {
                 if(holder.checkBox.isChecked()){
                     mTotalCapacity +=  fileItem.getSize();
-
-
                 }else {
                     mTotalCapacity -=  fileItem.getSize();
                 }

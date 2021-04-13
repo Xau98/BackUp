@@ -31,7 +31,6 @@ public class FragmentStatusBackUp extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        Log.d("Tiennvh2", "FragmentStatusBackUp: ok" );
        View view= inflater.inflate(R.layout.fragment_choose,container,false);
         mBTBackup = view.findViewById(R.id.bt_confirm_save);
         mShowCapacity = view.findViewById(R.id.show_capacity);
@@ -54,9 +53,7 @@ public class FragmentStatusBackUp extends Fragment {
                dialog.showDialog(getContext(), inflater, title, showconfirm);
             }
         });
-
        return view;
-
     }
 
 

@@ -212,10 +212,11 @@ public class MainActivity extends Activity {
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
+                    Log.d("Tiennvh", "isSuccessful: ");
                     //mJsonData = response.body().string();
-                    InputStream bitmap= response.body().byteStream();
+                    /*InputStream bitmap= response.body().byteStream();
                     File file = new File(handleFile.PATH_ROOT+"/Android");
-                    copyInputStreamToFile(bitmap,file);
+                    copyInputStreamToFile(bitmap,file);*/
                    // mHandler.sendEmptyMessage(MSG_LOGIN);
                 }
             }
@@ -289,7 +290,7 @@ public class MainActivity extends Activity {
                 e.printStackTrace();
             }*/
            //CompressionFile.unZip(handleFile.PATH_ROOT+"/Android/test2.zip",handleFile.PATH_ROOT+"/Android/obb");
-
+           // RequestToServer.upload("uploadfile",handleFile.PATH_ROOT+"/Android/test2.zip", callback );
 
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
