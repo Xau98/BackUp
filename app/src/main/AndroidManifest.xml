@@ -37,7 +37,11 @@
             android:screenOrientation="portrait"
             android:label="BackupActivity">
         </activity>
-
+        <activity
+            android:name=".RestoreActivity"
+            android:screenOrientation="portrait"
+            android:label="RestoreActivity">
+        </activity>
     </application>
 
 
