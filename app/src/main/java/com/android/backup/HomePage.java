@@ -53,8 +53,9 @@ Switch mAutoBackup;
         mListBackup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
+                Intent intent = new Intent(getBaseContext(), RestoreActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK );
+                startActivity(intent);
             }
         });
         Dialog dialog = new Dialog();
