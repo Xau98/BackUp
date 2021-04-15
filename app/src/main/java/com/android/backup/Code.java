@@ -1,5 +1,7 @@
 package com.android.backup;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.File;
@@ -19,12 +21,17 @@ public class Code {
 
 
 
-    public static void encrypt(String pathInput , String pathOutput ) throws IOException, NoSuchAlgorithmException,
+
+    public static void encrypt(Context context, String pathInput , String pathOutput ) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
         FileInputStream fileInputStream = new FileInputStream(pathInput);
         FileOutputStream fileOutputStream = new FileOutputStream(pathOutput);
         // Length is 16 byte
-        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(),
+        SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
+        String token = sharedPreferences.getString("token","//");
+        Log.d("Tiennvh", "encrypt: "+ token);
+        String key = token+"@backup";
+        SecretKeySpec sks = new SecretKeySpec( key.getBytes() ,
                 "AES");
         // Create cipher
         Cipher cipher = Cipher.getInstance("AES");
@@ -43,11 +50,16 @@ public class Code {
         fileInputStream.close();
     }
 
-    static void decrypt(String pathInput , String pathOutput) throws IOException, NoSuchAlgorithmException,
+    //"MyDifficultPassw"
+    static void decrypt(Context context,String pathInput , String pathOutput) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
         FileInputStream fileInputStream = new FileInputStream(pathInput);
         FileOutputStream fileOutputStream = new FileOutputStream(pathOutput);
-        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(),
+        SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
+        String token = sharedPreferences.getString("token","//");
+        Log.d("Tiennvh", "encrypt: "+ token);
+        String key = token+"@backup";
+        SecretKeySpec sks = new SecretKeySpec(key.getBytes(),
                 "AES");
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, sks);

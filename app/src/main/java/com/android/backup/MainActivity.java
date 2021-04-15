@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
         //========================Khoi tao============================================
         mPreferences = getSharedPreferences(SHARED_PRE_TOKEN, MODE_PRIVATE);
         // Bkav TienNVh : Cấp quyền
-         Permission permission = new Permission(this,this);
+        Permission permission = new Permission(this,this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()) {
@@ -213,11 +213,16 @@ public class MainActivity extends Activity {
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     Log.d("Tiennvh", "isSuccessful: ");
-                    //mJsonData = response.body().string();
+                    mJsonData = response.body().string();
                     /*InputStream bitmap= response.body().byteStream();
                     File file = new File(handleFile.PATH_ROOT+"/Android");
                     copyInputStreamToFile(bitmap,file);*/
-                   // mHandler.sendEmptyMessage(MSG_LOGIN);
+                    // mHandler.sendEmptyMessage(MSG_LOGIN);
+
+
+                    Intent intent = new Intent(getBaseContext(), HomePage.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
                 }
             }
         };
@@ -245,27 +250,27 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
 
-            switch (requestCode){
-                case 2405:
+        switch (requestCode){
+            case 2405:
 
-                    if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                         
-                        //resume tasks needing this permission
-                        Log.d("Tiennvh", "onRequestPermissionsResult: ");
-                    }else{
-                        Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
-                    } 
-                    break;
-              case 2406:
-                  Log.d(TAG, "External storage1");
-                  if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
-                      Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
-                      //resume tasks needing this permission
+                if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
 
-                  }else{
-                      Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
-                  }
-                  break;
+                    //resume tasks needing this permission
+                    Log.d("Tiennvh", "onRequestPermissionsResult: ");
+                }else{
+                    Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                }
+                break;
+            case 2406:
+                Log.d(TAG, "External storage1");
+                if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                    Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
+                    //resume tasks needing this permission
+
+                }else{
+                    Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                }
+                break;
 
 
         }
@@ -274,12 +279,12 @@ public class MainActivity extends Activity {
 
     // Bkav TienNVh : login Account
     public void onLoginAcoount() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
-       
+
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
         Log.d("Tiennvh", "onLoginAcoount: ");
         if (RequestToServer.isNetworkConnected(this)) {
-      /*      Log.d(TAG, "onLoginAcoount: ");
+            Log.d(TAG, "onLoginAcoount: ");
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("username", "x");
@@ -288,13 +293,9 @@ public class MainActivity extends Activity {
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }*/
-           //CompressionFile.unZip(handleFile.PATH_ROOT+"/Android/test2.zip",handleFile.PATH_ROOT+"/Android/obb");
-           // RequestToServer.upload("uploadfile",handleFile.PATH_ROOT+"/Android/test2.zip", callback );
+            }
 
-            Intent intent = new Intent(getBaseContext(), HomePage.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
         }

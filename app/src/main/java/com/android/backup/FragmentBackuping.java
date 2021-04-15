@@ -85,7 +85,7 @@ public class FragmentBackuping extends Fragment {
         for (int i=0;i<mListFileChecked.size();i++){
             CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+ mListFileChecked.get(i).getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip");
             try {
-                Code.encrypt(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
+                Code.encrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
 
             } catch (IOException e) {
                 e.printStackTrace();
