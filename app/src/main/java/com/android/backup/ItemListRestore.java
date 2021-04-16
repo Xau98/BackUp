@@ -5,12 +5,13 @@ public class ItemListRestore {
     private String name;
     private String dateBackup;
     private String devices;
-
-    public ItemListRestore(int ID, String name, String dateBackup, String devices) {
+    private int type;
+    public ItemListRestore(int ID, String name, String dateBackup, String devices, int type) {
         this.ID = ID;
         this.name = name;
         this.dateBackup = dateBackup;
         this.devices = devices;
+        this.type =type;
     }
 
     public int getID() {
@@ -45,5 +46,11 @@ public class ItemListRestore {
         this.devices = devices;
     }
 
+    public int getType() {
+        return type;
+    }
 
+    public void setType(int type) {
+        this.type = type;
+    }
 }

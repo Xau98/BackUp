@@ -218,8 +218,6 @@ public class MainActivity extends Activity {
                     File file = new File(handleFile.PATH_ROOT+"/Android");
                     copyInputStreamToFile(bitmap,file);*/
                     // mHandler.sendEmptyMessage(MSG_LOGIN);
-
-
                     Intent intent = new Intent(getBaseContext(), HomePage.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -285,7 +283,7 @@ public class MainActivity extends Activity {
         Log.d("Tiennvh", "onLoginAcoount: ");
         if (RequestToServer.isNetworkConnected(this)) {
             Log.d(TAG, "onLoginAcoount: ");
-            JSONObject jsonObject = new JSONObject();
+           /* JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("username", "x");
                 jsonObject.put("password","x");
@@ -293,7 +291,10 @@ public class MainActivity extends Activity {
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }
+            }*/
+            Intent intent = new Intent(getBaseContext(), HomePage.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
 
 
         } else {
