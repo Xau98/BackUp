@@ -18,13 +18,13 @@
             android:text="Bản sao lưu today"
             android:id="@+id/name_restore"
             android:textSize="20sp"
-            android:visibility="gone"
             android:paddingStart="15dp"
             />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/time_restore"
+            android:id="@+id/date_restore"
+            android:text="hôm nay "
             android:textSize="16sp"
             android:paddingStart="15dp"
             />

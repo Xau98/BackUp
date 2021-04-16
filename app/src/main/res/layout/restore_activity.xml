@@ -13,6 +13,23 @@
    <androidx.recyclerview.widget.RecyclerView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
+       android:layout_marginStart="10dp"
        android:id="@+id/recyclerview_restore"/>
-
+   <View
+       android:layout_width="match_parent"
+       android:background="#b2b2b2"
+       android:layout_height="1dp"/>
+   <TextView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Máy khác"
+       android:textStyle="bold"
+       android:textSize="20sp"
+       android:paddingStart="5dp"
+       />
+   <androidx.recyclerview.widget.RecyclerView
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:layout_marginStart="10dp"
+       android:id="@+id/recyclerview_restore_other"/>
 </LinearLayout>
