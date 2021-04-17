@@ -39,8 +39,6 @@ public class Dialog {
                     // code for matching password
                     Log.d("Tiennvh", "setConfirmListener: " + onConfirmBackup);
                     onConfirmBackup.onConfirm();
-
-
                 }
             });
         }

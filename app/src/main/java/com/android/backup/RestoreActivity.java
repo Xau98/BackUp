@@ -2,6 +2,7 @@ package com.android.backup;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -18,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class RestoreActivity extends AppCompatActivity {
+public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup{
 
     RecyclerView mRecyclerViewListRestore ,mRecyclerViewListRestoreOther;
     ArrayList <ItemListRestore> mListRestore;
@@ -26,6 +27,7 @@ public class RestoreActivity extends AppCompatActivity {
     LinearLayout mLinearLayout;
     CheckBox mCheckBoxAll;
     ImageButton mBTDelete;
+    AdapterListFileRestore adapterItemFile;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +40,8 @@ public class RestoreActivity extends AppCompatActivity {
         mBTDelete = findViewById(R.id.bt_delete_all_restore);
         init();
 
-        AdapterListFileRestore adapterItemFile= new AdapterListFileRestore(this,mListRestore );
+        adapterItemFile= new AdapterListFileRestore(this,mListRestore );
+        adapterItemFile.setOnCallBackRestore(this);
         mLinearLayout = findViewById(R.id.linear_title);
         mLinearLayout.setOnTouchListener(new OnSwipeTouchListener(RestoreActivity.this) {
             public void onSwipeTop() {
@@ -90,23 +93,25 @@ public class RestoreActivity extends AppCompatActivity {
         mBTDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               mListRestoreOther= adapterItemFile.getmList();
-                Log.d("Tiennvh", "onClick: "+ mListRestoreOther.size());
-                mListRestore.clear();
-               for(int i=0;i<mListRestoreOther.size();i++){
+                mListRestore = adapterItemFile.getmList();
 
-                   if(mListRestoreOther.get(i).getType()!=3){
-                       Log.d("Tiennvh", i+"onClick: "+mListRestoreOther.get(i).getName()+"//"+mListRestoreOther.get(i).getType());
-                       mListRestore.add(mListRestoreOther.get(i));
-                   }
-               }
-                Log.d("Tiennvh", "onClick: "+ mListRestoreOther.size());
-
-                adapterItemFile.notifyDataSetChanged();
-
+                    ArrayList<ItemListRestore> list2 = new ArrayList<>();
+                    for (int i = 0; i < mListRestore.size(); i++) {
+                        if (mListRestore.get(i).getType() != 3) {
+                            mListRestore.get(i).setType(4);
+                            ItemListRestore itemListRestore = mListRestore.get(i);
+                            list2.add(itemListRestore);
+                        }
+                    }
+                    mListRestore = (ArrayList<ItemListRestore>) list2.clone();
+                    adapterItemFile.setmList(mListRestore);
+                    adapterItemFile.notifyDataSetChanged();
+                if (mListRestore.size() <= 0) {
+                    mCheckBoxAll.setVisibility(View.GONE);
+                    mBTDelete.setVisibility(View.GONE);
+                }
             }
         });
-
         mRecyclerViewListRestore.setAdapter(adapterItemFile);
         mRecyclerViewListRestore.setLayoutManager(new LinearLayoutManager(this));
 
@@ -124,6 +129,7 @@ public class RestoreActivity extends AppCompatActivity {
             }});
 
         itemTouchHelper.attachToRecyclerView(mRecyclerViewListRestore);
+        dialog.setConfirmListener(this);
     }
 
 
@@ -134,4 +140,24 @@ public void init(){
             mListRestoreOther.add(ir);
         }
 }
+    Dialog dialog= new Dialog();
+    int mPositionDelete = -1 ;
+    @Override
+    public void onConfirmDeleteRestore(int position) {
+        LayoutInflater inflater = getLayoutInflater();
+        dialog.showDialog(this,inflater,"Bạn có chắc muốn xóa hay không ?", true);
+        mPositionDelete = position;
+    }
+
+    @Override
+    public void onConfirm() {
+       if(mPositionDelete !=-1){
+           for(int i=0;i<mListRestore.size();i++){
+               if(mListRestore.get(i).getID()==mPositionDelete){
+                   mListRestore.remove(i);
+                   adapterItemFile.notifyDataSetChanged();
+               }
+           }
+       }
+    }
 }

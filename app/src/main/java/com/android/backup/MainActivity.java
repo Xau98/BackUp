@@ -55,6 +55,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,6 +64,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.channels.FileChannel;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -129,8 +131,7 @@ public class MainActivity extends Activity {
         Permission permission = new Permission(this,this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()) {
-
+                && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()&&permission.isReadContactsPermissionGranted()) {
 
         }
         // Configure sign-in to request the user's ID, email address, and basic
@@ -227,6 +228,31 @@ public class MainActivity extends Activity {
 
 
     }
+    public void exportDatabse(String databaseName)
+    {
+        try {
+            File sd = Environment.getExternalStorageDirectory();
+            File data = Environment.getDataDirectory();
+
+            if (sd.canWrite()) {
+                String currentDBPath = "//data//"+getPackageName()+"//databases//"+databaseName+"";
+                String backupDBPath = "backupname.db";
+                File currentDB = new File(data, currentDBPath);
+                File backupDB = new File(sd, backupDBPath);
+
+                if (currentDB.exists()) {
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
     public static final int DEFAULT_BUFFER_SIZE = 8192;
     private static void copyInputStreamToFile(InputStream inputStream, File file)
             throws IOException {
@@ -249,7 +275,7 @@ public class MainActivity extends Activity {
 
 
         switch (requestCode){
-            case 2405:
+            case Permission.PER_READ:
 
                 if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
 
@@ -259,7 +285,7 @@ public class MainActivity extends Activity {
                     Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
                 }
                 break;
-            case 2406:
+            case Permission.PER_WRITE:
                 Log.d(TAG, "External storage1");
                 if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
                     Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
@@ -269,6 +295,18 @@ public class MainActivity extends Activity {
                     Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
                 }
                 break;
+
+             case Permission.PER_CONTACT:
+                 Log.d(TAG, "Contact storage1");
+                 if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                     Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
+                     //resume tasks needing this permission
+
+                 }else{
+                     Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                 }
+
+            break;
 
 
         }
@@ -297,10 +335,38 @@ public class MainActivity extends Activity {
             startActivity(intent);
 
 
+
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
         }
     }
+
+  /*  private void copyFile() {
+        try {
+            File sd = Environment.getExternalStorageDirectory();
+            File data = Environment.getDataDirectory();
+
+            if (sd.canWrite()) {
+                String currentDBPath =
+                        this.getDatabasePath(DATABASE_NAME).getAbsolutePath();
+
+                String backupDBPath = "data.db";
+
+                File currentDB = new File(currentDBPath);
+                File backupDB = new File(sd, backupDBPath);
+
+                if (currentDB.exists()) {
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }*/
 
     // Bkav TienNVh : login FB
     public void onLoginFacebook() {

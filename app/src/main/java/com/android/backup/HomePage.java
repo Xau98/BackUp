@@ -18,12 +18,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 public class HomePage extends AppCompatActivity implements Dialog.onConfirmBackup {
 TextView mTextViewEmail;
 Button mListBackup, mSaveNow;
 Switch mAutoBackup;
-
+ConstraintLayout  mInfoAccount;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +42,16 @@ Switch mAutoBackup;
         mListBackup = findViewById(R.id.list_backup);
         mSaveNow = findViewById(R.id.bt_backup_now);
         mAutoBackup = findViewById(R.id.switch_auto_backup);
+        mInfoAccount = findViewById(R.id.account_backup);
+
+        mInfoAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getBaseContext(), ProfileAccount.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK );
+                startActivity(intent);
+            }
+        });
         mSaveNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

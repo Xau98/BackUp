@@ -20,6 +20,7 @@
         android:layout_height="1dp"/>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
+        android:id="@+id/account_backup"
         android:layout_height="70dp">
 
         <ImageView

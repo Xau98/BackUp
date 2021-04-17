@@ -17,9 +17,18 @@ import java.util.ArrayList;
 public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFileRestore.ViewHolder> {
     private Context mContext;
     private ArrayList<ItemListRestore> mList;
+    private onCallBackRestore onCallBackRestore;
+
+    public void setOnCallBackRestore(AdapterListFileRestore.onCallBackRestore onCallBackRestore) {
+        this.onCallBackRestore = onCallBackRestore;
+    }
 
     public ArrayList<ItemListRestore> getmList() {
         return mList;
+    }
+
+    public void setmList(ArrayList<ItemListRestore> mList) {
+        this.mList = mList;
     }
 
     public AdapterListFileRestore(Context mContext, ArrayList<ItemListRestore> mList) {
@@ -43,23 +52,30 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
         int type = mList.get(position).getType();
         switch (type){
             case 0:
+                //Bkav Tiennvh: mặc định
                 holder.mDelete.setVisibility(View.GONE);
                 holder.mCheckBox.setVisibility(View.GONE);
                 break;
             case 1:
+                //Bkav Tiennvh : Vuốt trái máy hiện tại
                 holder.mCheckBox.setVisibility(View.VISIBLE);
                 holder.mDelete.setVisibility(View.GONE);
                 break;
             case 2:
+                //Bkav Tiennvh vuốt phải máy hiện tại
                 holder.mDelete.setVisibility(View.VISIBLE);
                 holder.mCheckBox.setVisibility(View.GONE);
                 break;
             case 3:
-                if(holder.mCheckBox.getVisibility() == View.VISIBLE){
-                    holder.mCheckBox.setChecked(true);
-                }
+                //Bkav Tiennvh : select checkbox
+
+                holder.mCheckBox.setChecked(true);
+
                 break;
             case 4:
+                //Bkav Tiennvh: bỏ checkbox
+                holder.mCheckBox.setVisibility(View.VISIBLE);
+                holder.mDelete.setVisibility(View.GONE);
                 holder.mCheckBox.setChecked(false);
                 break;
         }
@@ -73,6 +89,13 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
                 }
                 else
                     mList.get(position).setType(0);
+            }
+        });
+        holder.mDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCallBackRestore.onConfirmDeleteRestore(mList.get(position).getID());
+
             }
         });
     }
@@ -98,5 +121,7 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
 
         }
     }
-
+interface onCallBackRestore{
+         void onConfirmDeleteRestore(int position);
+}
 }
