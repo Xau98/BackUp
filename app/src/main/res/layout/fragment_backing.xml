@@ -5,7 +5,7 @@
 
     android:paddingStart="10dp">
 <LinearLayout
-    android:layout_width="250dp"
+    android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:layout_marginTop="10dp"
     android:orientation="vertical">
@@ -45,6 +45,7 @@
         android:layout_marginStart="5dp"
         android:layout_marginTop="3dp"
         android:id="@+id/pause_bachup"
+        android:visibility="gone"
         android:src="@drawable/ic_pause_circle_filled_black_24dp"
         />
     <ImageButton

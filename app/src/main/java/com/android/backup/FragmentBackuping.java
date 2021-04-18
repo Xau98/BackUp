@@ -36,9 +36,10 @@ public class FragmentBackuping extends Fragment {
     Callback callback;
     callbackBackup mCallbackBackup;
     ImageButton mPauseBackup, mStopBackup;
-    public FragmentBackuping(ArrayList<FileItem> listFileChecked) {
+    Dialog dialog;
+    public FragmentBackuping(ArrayList<FileItem> listFileChecked, Dialog dialog) {
         mListFileChecked = listFileChecked;
-
+        this.dialog=dialog;
     }
 
     public void setCallbackBackup(callbackBackup callbackBackup){
@@ -57,6 +58,28 @@ public class FragmentBackuping extends Fragment {
         mPauseBackup = view.findViewById(R.id.pause_bachup);
         mStopBackup = view.findViewById(R.id.stop_bachup);
 
+        mPauseBackup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPauseBackup.setVisibility(View.GONE);
+                mStopBackup.setVisibility(View.VISIBLE);
+                mStatusLoad.setText("Đang chuẩn bị...");
+                LayoutInflater inflater = getLayoutInflater();
+                String title ="Bạn có chắc muốn tiếp tục đồng bộ dữ liệu hay không ?";
+                dialog.showDialog(getContext(), inflater, title, true, 1);
+            }
+        });
+        mStopBackup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPauseBackup.setVisibility(View.VISIBLE);
+                mStopBackup.setVisibility(View.GONE);
+                mStatusLoad.setText("Tạm dừng ...");
+                LayoutInflater inflater = getLayoutInflater();
+                String title ="Bạn có chắc muốn dừng đồng bộ dữ liệu hay không ?";
+                dialog.showDialog(getContext(), inflater, title, true,2);
+            }
+        });
         ViewTreeObserver textViewTreeObserver = mProgressBar.getViewTreeObserver();
         textViewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 

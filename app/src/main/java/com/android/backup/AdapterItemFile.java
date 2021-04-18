@@ -19,14 +19,13 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
     Boolean aBoolean= true;
     isChooseFolder isChooseFolder;
     long mTotalCapacity;
+    boolean isRestore= false;
 
-    String mStatusBackup="đang chuẩn bị";
-
-
-    public AdapterItemFile(Context mContext, ArrayList<FileItem> mList, Boolean b) {
+    public AdapterItemFile(Context mContext, ArrayList<FileItem> mList, Boolean b, boolean isRestore ) {
         this.mContext = mContext;
         this.mList = mList;
         aBoolean =b;
+        this.isRestore =isRestore;
     }
 
     public void setChooseFolder ( isChooseFolder isChooseFolder) {
@@ -61,6 +60,9 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
                 isChooseFolder.getTotalCapacity(fileItem , holder.checkBox.isChecked());
             }
         });
+        if(isRestore){
+            holder.statusBackup.setText("đang khôi phục ...");
+        }
     }
 
     @Override

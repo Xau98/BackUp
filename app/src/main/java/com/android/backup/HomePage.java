@@ -80,14 +80,14 @@ ConstraintLayout  mInfoAccount;
                     title ="Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu tự động";
                 else
                     title ="Hãy xác nhận bạn tắt quá trình sao lưu dữ liệu tự động";
-                dialog.showDialog(HomePage.this,inflater , title, true);
+                dialog.showDialog(HomePage.this,inflater , title, true,0);
             }
         });
 
     }
 
     @Override
-    public void onConfirm() {
+    public void onConfirm(int type) {
 
     }
 

@@ -19,7 +19,7 @@ public class Dialog {
 
     }
 
-    public  void showDialog(Context context, LayoutInflater inflater, String title , boolean showconfirm ){
+    public  void showDialog(Context context, LayoutInflater inflater, String title , boolean showconfirm ,int type ){
         View alertLayout = inflater.inflate(R.layout.dialog_confirm, null);
         AlertDialog.Builder alert = new AlertDialog.Builder(context);
         alert.setView(alertLayout);
@@ -38,14 +38,15 @@ public class Dialog {
                 public void onClick(DialogInterface dialog, int which) {
                     // code for matching password
                     Log.d("Tiennvh", "setConfirmListener: " + onConfirmBackup);
-                    onConfirmBackup.onConfirm();
+                    onConfirmBackup.onConfirm(type);
                 }
             });
         }
         alert.show();
     }
 
+
     interface  onConfirmBackup{
-        void onConfirm();
+        void onConfirm(int type);
     }
 }

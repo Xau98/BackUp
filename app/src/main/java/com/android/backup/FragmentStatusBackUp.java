@@ -50,7 +50,7 @@ public class FragmentStatusBackUp extends Fragment {
                     showconfirm = false;
                 }
 
-               dialog.showDialog(getContext(), inflater, title, showconfirm);
+               dialog.showDialog(getContext(), inflater, title, showconfirm,0);
             }
         });
        return view;

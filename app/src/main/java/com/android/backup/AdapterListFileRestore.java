@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -95,7 +96,12 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
             @Override
             public void onClick(View v) {
                 onCallBackRestore.onConfirmDeleteRestore(mList.get(position).getID());
-
+            }
+        });
+        holder.mItemRestore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCallBackRestore.onClickItemRestore(mList.get(position).getID());
             }
         });
     }
@@ -112,16 +118,18 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
         TextView mNameBackup, mDateBackup;
         CheckBox mCheckBox;
         ImageButton mDelete;
+        LinearLayout mItemRestore;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             mNameBackup = itemView.findViewById(R.id.name_restore);
             mDateBackup = itemView.findViewById(R.id.date_restore);
             mCheckBox = itemView.findViewById(R.id.checkbox_restore);
             mDelete = itemView.findViewById(R.id.bt_delete_restore);
-
+            mItemRestore = itemView.findViewById(R.id.item_restore);
         }
     }
 interface onCallBackRestore{
          void onConfirmDeleteRestore(int position);
+         void onClickItemRestore(int position);
 }
 }

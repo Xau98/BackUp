@@ -1,5 +1,6 @@
 package com.android.backup;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -145,12 +146,22 @@ public void init(){
     @Override
     public void onConfirmDeleteRestore(int position) {
         LayoutInflater inflater = getLayoutInflater();
-        dialog.showDialog(this,inflater,"Bạn có chắc muốn xóa hay không ?", true);
+        dialog.showDialog(this,inflater,"Bạn có chắc muốn xóa hay không ?", true,0);
         mPositionDelete = position;
     }
 
     @Override
-    public void onConfirm() {
+    public void onClickItemRestore(int position) {
+        Intent intent=new Intent(this, BackupActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK );
+        intent.putExtra("NameTab","Chi tiết");
+        intent.putExtra("Position",position);
+        intent.putExtra("restore",true );
+        startActivity(intent);
+    }
+
+    @Override
+    public void onConfirm(int type) {
        if(mPositionDelete !=-1){
            for(int i=0;i<mListRestore.size();i++){
                if(mListRestore.get(i).getID()==mPositionDelete){
