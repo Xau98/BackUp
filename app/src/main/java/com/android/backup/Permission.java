@@ -19,7 +19,8 @@ public class Permission {
     private Activity mActivity;
     public static final int PER_READ = 2405;
     public static final int PER_WRITE = 2406;
-    public static final int PER_CONTACT= 2407;
+    public static final int PER_CONTACT = 2407;
+    public static final int PER_SMS =2408;
 
     public Permission(Context cotext,Activity activity) {
         this.mCotext = cotext;
@@ -77,6 +78,25 @@ String TAG ="Tiennvh";
 
                 Log.v(TAG,"Permission is revoked2");
                 ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.READ_CONTACTS}, PER_CONTACT);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Permission is granted2");
+            return true;
+        }
+    }
+    @SuppressLint("WrongConstant")
+    public  boolean isReadSMSPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(mCotext, Manifest.permission.READ_SMS)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Permission is granted2");
+                return true;
+            } else {
+
+                Log.v(TAG,"Permission is revoked2");
+                ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.READ_SMS}, PER_SMS);
                 return false;
             }
         }

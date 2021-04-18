@@ -40,6 +40,9 @@ import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.github.tamir7.contacts.Contact;
+import com.github.tamir7.contacts.Contacts;
+import com.github.tamir7.contacts.PhoneNumber;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -71,10 +74,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.crypto.NoSuchPaddingException;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import me.everything.providers.android.calllog.CallsProvider;
+import me.everything.providers.core.Data;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -142,7 +148,7 @@ public class MainActivity extends Activity {
                 .build();
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
+        Contacts.initialize(this);
         //========================Login Account=========================================
         bt_login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,6 +234,25 @@ public class MainActivity extends Activity {
 
 
     }
+    //Bkav Tiennvh Get contact
+    public void getcontact(){
+        List<Contact> contacts = Contacts.getQuery().find();
+        for (int i=0;i<contacts.size();i++){
+            List<PhoneNumber> ct1=contacts.get(i).getPhoneNumbers();
+            for(int j=0;j<ct1.size();j++){
+                Log.d("Tiennvh", "getcontact: "+ ct1.get(j).getNumber());
+            }
+
+        }
+    }
+    public void getCallContact(){
+        CallsProvider callsProvider = new CallsProvider(this);
+        List<Data> a= (List<Data>) callsProvider.getCalls();
+        for(int i=0;i<a.size();i++){
+            Log.d("Tiennvh", "getCallContact: "+ a.get(i).getList());
+
+        }
+    }
     public void exportDatabse(String databaseName)
     {
         try {
@@ -296,7 +321,7 @@ public class MainActivity extends Activity {
                 }
                 break;
 
-             case Permission.PER_CONTACT:
+           case Permission.PER_CONTACT:
                  Log.d(TAG, "Contact storage1");
                  if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
                      Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
@@ -305,8 +330,17 @@ public class MainActivity extends Activity {
                  }else{
                      Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
                  }
-
             break;
+                case Permission.PER_SMS:
+                    Log.d(TAG, "Permission READ SMS");
+                    if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+                        Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
+                        //resume tasks needing this permission
+
+                    }else{
+                        Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
+                    }
+                    break;
 
 
         }
@@ -329,12 +363,12 @@ public class MainActivity extends Activity {
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }*/
+            }
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-
-
+*/
+            //getcontact();
 
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
