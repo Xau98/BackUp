@@ -21,7 +21,7 @@ public class Permission {
     public static final int PER_WRITE = 2406;
     public static final int PER_CONTACT = 2407;
     public static final int PER_SMS =2408;
-
+    public static final int PER_SCALL_LOG=2409;
     public Permission(Context cotext,Activity activity) {
         this.mCotext = cotext;
         this.mActivity = activity;
@@ -105,5 +105,23 @@ String TAG ="Tiennvh";
             return true;
         }
     }
+    @SuppressLint("WrongConstant")
+    public  boolean isReadCallLogPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(mCotext, Manifest.permission.READ_CALL_LOG)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Permission is granted2");
+                return true;
+            } else {
 
+                Log.v(TAG,"Permission is revoked2");
+                ActivityCompat.requestPermissions(mActivity, new String[]{Manifest.permission.READ_CALL_LOG}, PER_SCALL_LOG);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Permission is granted2");
+            return true;
+        }
+    }
 }

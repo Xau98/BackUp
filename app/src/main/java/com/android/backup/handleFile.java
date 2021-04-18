@@ -1,16 +1,24 @@
 package com.android.backup;
 
+import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.github.tamir7.contacts.Contact;
+import com.github.tamir7.contacts.Contacts;
+import com.github.tamir7.contacts.PhoneNumber;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import me.everything.providers.android.calllog.CallsProvider;
 
 public class handleFile {
     public  static String PATH_ROOT = Environment.getExternalStorageDirectory().toString();
@@ -94,6 +102,25 @@ public class handleFile {
         File file= new File(path);
         if(file.exists()){
             file.delete();
+        }
+    }
+    //Bkav Tiennvh Get contact
+    public void getcontact(){
+        List<Contact> contacts = Contacts.getQuery().find();
+        for (int i=0;i<contacts.size();i++){
+            List<PhoneNumber> ct1=contacts.get(i).getPhoneNumbers();
+            for(int j=0;j<ct1.size();j++){
+                Log.d("Tiennvh", "getcontact: "+ ct1.get(j).getNumber());
+            }
+
+        }
+    }
+    public void getCallContact(Context context){
+        CallsProvider callsProvider = new CallsProvider(context);
+        List<me.everything.providers.android.calllog.Call> a=  callsProvider.getCalls().getList();
+        for(int i=0;i<a.size();i++){
+            Log.d("Tiennvh", "getCallContact: "+ a.get(i).number);
+
         }
     }
 /*

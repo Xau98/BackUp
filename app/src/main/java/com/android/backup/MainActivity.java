@@ -11,17 +11,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -102,7 +108,8 @@ public class MainActivity extends Activity {
     Callback callback;
     Handler mHandler;
     String mJsonData;
-    Button bt_login;
+    Button bt_login, mBTRegister;
+
     SignInButton loginGG;//Google
     LoginButton loginFB;//Facebook
     EditText mUsername, mPassword;
@@ -131,13 +138,16 @@ public class MainActivity extends Activity {
         loginFB = (LoginButton) findViewById(R.id.loginFB_button);
         mUsername = findViewById(R.id.username);
         mPassword = findViewById(R.id.password);
+        mBTRegister = findViewById(R.id.bt_register);
         //========================Khoi tao============================================
         mPreferences = getSharedPreferences(SHARED_PRE_TOKEN, MODE_PRIVATE);
         // Bkav TienNVh : Cấp quyền
         Permission permission = new Permission(this,this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()&&permission.isReadContactsPermissionGranted()) {
+                && permission.isReadStoragePermissionGranted() && permission.isWriteStoragePermissionGranted()&&permission.isReadContactsPermissionGranted()
+            &&permission.isReadSMSPermissionGranted()&&permission.isReadCallLogPermissionGranted()
+        ) {
 
         }
         // Configure sign-in to request the user's ID, email address, and basic
@@ -150,6 +160,14 @@ public class MainActivity extends Activity {
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         Contacts.initialize(this);
         //========================Login Account=========================================
+        mBTRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            Intent intent = new Intent(getBaseContext(),RegisterAcivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK );
+            startActivity(intent);
+            }
+        });
         bt_login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -234,25 +252,7 @@ public class MainActivity extends Activity {
 
 
     }
-    //Bkav Tiennvh Get contact
-    public void getcontact(){
-        List<Contact> contacts = Contacts.getQuery().find();
-        for (int i=0;i<contacts.size();i++){
-            List<PhoneNumber> ct1=contacts.get(i).getPhoneNumbers();
-            for(int j=0;j<ct1.size();j++){
-                Log.d("Tiennvh", "getcontact: "+ ct1.get(j).getNumber());
-            }
 
-        }
-    }
-    public void getCallContact(){
-        CallsProvider callsProvider = new CallsProvider(this);
-        List<Data> a= (List<Data>) callsProvider.getCalls();
-        for(int i=0;i<a.size();i++){
-            Log.d("Tiennvh", "getCallContact: "+ a.get(i).getList());
-
-        }
-    }
     public void exportDatabse(String databaseName)
     {
         try {
@@ -331,6 +331,7 @@ public class MainActivity extends Activity {
                      Log.d("Tiennvh", "onRequestPermissionsResult: FALSE");
                  }
             break;
+                case Permission.PER_SCALL_LOG:
                 case Permission.PER_SMS:
                     Log.d(TAG, "Permission READ SMS");
                     if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
@@ -353,7 +354,7 @@ public class MainActivity extends Activity {
         String username = mUsername.getText().toString();
         String password = encryptPassword(mPassword.getText().toString());
         Log.d("Tiennvh", "onLoginAcoount: ");
-        if (RequestToServer.isNetworkConnected(this)) {
+        if (ConditionBackup.isNetworkConnected(this)) {
             Log.d(TAG, "onLoginAcoount: ");
            /* JSONObject jsonObject = new JSONObject();
             try {
@@ -363,18 +364,56 @@ public class MainActivity extends Activity {
                 RequestToServer.post(path, jsonObject, callback);
             } catch (JSONException e) {
                 e.printStackTrace();
-            }
+            }*/
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-*/
-            //getcontact();
+
+
+
 
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
         }
     }
 
+
+    public static boolean insertContact(ContentResolver contactAdder,
+                                        String firstName, String mobileNumber) {
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+        ops.add(ContentProviderOperation
+                .newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                .build());
+        ops.add(ContentProviderOperation
+                .newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                .withValue(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                .withValue(
+                        ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+                        firstName).build());
+        ops.add(ContentProviderOperation
+                .newInsert(ContactsContract.Data.CONTENT_URI)
+                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                .withValue(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        mobileNumber)
+                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
+                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE).build());
+
+        try {
+            contactAdder.applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
   /*  private void copyFile() {
         try {
             File sd = Environment.getExternalStorageDirectory();

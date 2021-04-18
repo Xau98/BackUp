@@ -52,6 +52,11 @@
             android:screenOrientation="portrait"
             android:label="ProfileAccount">
         </activity>
+        <activity
+            android:name=".RegisterAcivity"
+            android:screenOrientation="portrait"
+            android:label="RegisterAcivity">
+        </activity>
     </application>
 
 
