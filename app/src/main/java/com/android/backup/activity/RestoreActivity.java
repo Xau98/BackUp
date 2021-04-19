@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,7 +9,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,9 +17,15 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.backup.Dialog;
+import com.android.backup.ItemListRestore;
+import com.android.backup.OnSwipeTouchListener;
+import com.android.backup.R;
+import com.android.backup.adapter.AdapterListFileRestore;
+
 import java.util.ArrayList;
 
-public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup{
+public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup {
 
     RecyclerView mRecyclerViewListRestore ,mRecyclerViewListRestoreOther;
     ArrayList <ItemListRestore> mListRestore;

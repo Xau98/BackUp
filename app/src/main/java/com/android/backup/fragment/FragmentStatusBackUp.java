@@ -1,19 +1,19 @@
-package com.android.backup;
+package com.android.backup.fragment;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+
+import com.android.backup.Dialog;
+import com.android.backup.R;
+import com.android.backup.fragment.FragmentBackuping;
 
 public class FragmentStatusBackUp extends Fragment {
     ImageButton mBTBackup;

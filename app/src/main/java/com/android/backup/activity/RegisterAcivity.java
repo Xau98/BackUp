@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.annotation.Nullable;
+
+import com.android.backup.R;
 
 public class RegisterAcivity extends Activity {
 

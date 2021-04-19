@@ -46,7 +46,7 @@ public class Dialog {
     }
 
 
-    interface  onConfirmBackup{
+ public   interface  onConfirmBackup{
         void onConfirm(int type);
     }
 }

@@ -1,6 +1,6 @@
-package com.android.backup;
+package com.android.backup.account;
 
-class Account {
+public class Account {
     private String mID , mName, mToken, mCreate ;
 
     public Account(String mID, String mName, String mToken, String mCreate) {

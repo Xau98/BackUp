@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class FileItem {
+public class FileItem {
   //  private String ID;
 
     private String name;

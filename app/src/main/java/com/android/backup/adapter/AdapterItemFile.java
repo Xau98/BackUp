@@ -1,15 +1,17 @@
-package com.android.backup;
+package com.android.backup.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.backup.FileItem;
+import com.android.backup.R;
 
 import java.util.ArrayList;
 
@@ -93,7 +95,7 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
             }
         }
     }
-    interface isChooseFolder{
+   public interface isChooseFolder{
         void  getTotalCapacity(FileItem fileItem , boolean isChecked);
     }
 }

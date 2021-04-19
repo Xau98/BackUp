@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.adapter;
 
 import android.content.Context;
 import android.util.Log;
@@ -12,6 +12,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.backup.ItemListRestore;
+import com.android.backup.R;
 
 import java.util.ArrayList;
 
@@ -128,7 +131,7 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
             mItemRestore = itemView.findViewById(R.id.item_restore);
         }
     }
-interface onCallBackRestore{
+public interface onCallBackRestore{
          void onConfirmDeleteRestore(int position);
          void onClickItemRestore(int position);
 }

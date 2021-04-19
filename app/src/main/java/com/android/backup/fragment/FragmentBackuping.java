@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.fragment;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -15,6 +15,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+
+import com.android.backup.Code;
+import com.android.backup.CompressionFile;
+import com.android.backup.Dialog;
+import com.android.backup.FileItem;
+import com.android.backup.R;
+import com.android.backup.RequestToServer;
+import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -136,7 +144,7 @@ public class FragmentBackuping extends Fragment {
         super.onStart();
     }
 
-    interface  callbackBackup{
+   public interface  callbackBackup{
         void onCallbackBackup(boolean isSuccessful);
     }
 }

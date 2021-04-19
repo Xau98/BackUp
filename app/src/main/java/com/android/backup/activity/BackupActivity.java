@@ -1,29 +1,33 @@
-package com.android.backup;
+package com.android.backup.activity;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.backup.ServiceBackup;
+import com.android.backup.adapter.AdapterItemFile;
+import com.android.backup.Dialog;
+import com.android.backup.FileItem;
+import com.android.backup.fragment.FragmentBackuping;
+import com.android.backup.fragment.FragmentRestoring;
+import com.android.backup.fragment.FragmentStatusBackUp;
+import com.android.backup.R;
+import com.android.backup.handleFile;
+
 import java.util.ArrayList;
 
-public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup , AdapterItemFile.isChooseFolder, FragmentBackuping.callbackBackup {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder, FragmentBackuping.callbackBackup {
     FragmentStatusBackUp fragmentStatusBackUp;
     FragmentRestoring mFragmentRestoring;
     FragmentBackuping fragmentBackuping;
@@ -105,7 +109,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     @Override
     public void onConfirm(int type) {
-        if(type ==0) {
+        if(type == 0) {
             if (isRestore) {
                 fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
                 fragmentBackuping.setCallbackBackup(this);
@@ -113,6 +117,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
+
             } else {
                 fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
                 fragmentBackuping.setCallbackBackup(this);

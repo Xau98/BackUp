@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.widget.Button;
 
 import androidx.annotation.Nullable;
+
+import com.android.backup.R;
+import com.android.backup.activity.MainActivity;
 
 public class ProfileAccount  extends Activity {
 Button mBTLogout;
