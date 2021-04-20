@@ -25,6 +25,7 @@ import com.android.backup.ConditionBackup;
 import com.android.backup.FileItem;
 import com.android.backup.Permission;
 import com.android.backup.R;
+import com.android.backup.RequestToServer;
 import com.android.backup.ServiceBackup;
 import com.android.backup.account.Account;
 import com.facebook.AccessToken;
@@ -69,6 +70,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import static android.widget.Toast.LENGTH_SHORT;
+
 public class MainActivity extends Activity {
     CallbackManager callbackManager;
     GoogleSignInClient mGoogleSignInClient;
@@ -83,7 +86,7 @@ public class MainActivity extends Activity {
     public static final String ID_CLIENT_GG = "797362158064-h1cjks1abj7vqphiu6rc0429jsd3puet.apps.googleusercontent.com";
     public static final String TOKENT_CLIENT = "tokent_client";
     public static final int MSG_LOGIN = 1;
-    Callback callback;
+    Callback mCallback;
     Handler mHandler;
     String mJsonData;
     Button bt_login, mBTRegister;
@@ -183,30 +186,36 @@ public class MainActivity extends Activity {
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
                     case MSG_LOGIN:
-                        try {
-                            JSONObject Jobject = new JSONObject(mJsonData);
-                            SharedPreferences sharedPref =  getSharedPreferences(SHAREPREFENCE,  MODE_PRIVATE);
-                            SharedPreferences.Editor editor = sharedPref.edit();
-                            editor.putString("id", Jobject.getInt("id")+"");
-                            editor.putString("name", Jobject.getString("name"));
-                            editor.putString("token", Jobject.getString("token"));
-                            editor.putString("email", Jobject.getString("email"));
-                            editor.putString("date_create", Jobject.getString("date_create"));
-                            editor.commit();
-                            Intent intent = new Intent(getBaseContext(), HomePage.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            Toast.makeText(getBaseContext(), "Đăng nhập thành công :" + Jobject.getInt("id"), Toast.LENGTH_SHORT).show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        if (!mJsonData.equals("False")) {
+                            try {
+                                JSONObject Jobject = new JSONObject(mJsonData);
+                                Log.d("Tiennvh", "handleMessage: " + Jobject.getString("email"));
+                                SharedPreferences sharedPref = getSharedPreferences(SHAREPREFENCE, MODE_PRIVATE);
+                                SharedPreferences.Editor editor = sharedPref.edit();
+                                editor.putString("id", Jobject.getInt("id") + "");
+                                editor.putString("name", Jobject.getString("name"));
+                                editor.putString("token", Jobject.getString("token"));
+                                editor.putString("email", Jobject.getString("email"));
+                                editor.putString("date_create", Jobject.getString("date_create"));
+                                editor.commit();
+                                Intent intent = new Intent(getBaseContext(), HomePage.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                Toast.makeText(getBaseContext(), "Đăng nhập thành công :" + Jobject.getInt("id"), LENGTH_SHORT).show();
+                            } catch (JSONException e) {
+
+                                Log.d("Tiennvh", "handleMessage: " + e);
+                            }
+                            break;
+                        }else {
+
+                            Toast.makeText(getApplicationContext(), "Đăng nhập thất bại "  , LENGTH_SHORT).show();
                         }
-                        break;
                 }
             }
         };
 
-
-        callback = new Callback() {
+        mCallback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
@@ -217,13 +226,7 @@ public class MainActivity extends Activity {
                 if (response.isSuccessful()) {
                     Log.d("Tiennvh", "isSuccessful: ");
                     mJsonData = response.body().string();
-                    /*InputStream bitmap= response.body().byteStream();
-                    File file = new File(handleFile.PATH_ROOT+"/Android");
-                    copyInputStreamToFile(bitmap,file);*/
-                    // mHandler.sendEmptyMessage(MSG_LOGIN);
-                    Intent intent = new Intent(getBaseContext(), HomePage.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
+                    mHandler.sendEmptyMessage(MSG_LOGIN);
                 }
             }
         };
@@ -330,29 +333,34 @@ public class MainActivity extends Activity {
     public void onLoginAcoount() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
 
         String username = mUsername.getText().toString();
-        String password = encryptPassword(mPassword.getText().toString());
+       // String password = encryptPassword(mPassword.getText().toString());
+        String password = mPassword.getText().toString();
         Log.d("Tiennvh", "onLoginAcoount: ");
         if (ConditionBackup.isNetworkConnected(this)) {
-            Log.d(TAG, "onLoginAcoount: ");
-           /* JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put("username", "x");
-                jsonObject.put("password","x");
-                String path ="loginaccount";
-                RequestToServer.post(path, jsonObject, callback);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+
+          if(username.equals("")||password.equals("")){  Log.d(TAG, "onLoginAcoount: ");
+              Toast.makeText(this, "Nhập đầy đủ thông tin", LENGTH_SHORT).show();
+          }else {
+              JSONObject jsonObject = new JSONObject();
+              try {
+                  jsonObject.put("username", username);
+                  jsonObject.put("password", password);
+                  String path = "loginaccount";
+                  RequestToServer.post(path, jsonObject, mCallback);
+              } catch (JSONException e) {
+                  e.printStackTrace();
+              } /*
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
 
-*/
+
 
             Intent intent= new Intent(this, ServiceBackup.class);
-            startService(intent);
+            startService(intent);*/
+          }
         } else {
-            Toast.makeText(getBaseContext(), "Not Connect Internet", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), "Not Connect Internet", LENGTH_SHORT).show();
         }
     }
 
@@ -432,7 +440,7 @@ public class MainActivity extends Activity {
         loginFB.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                Toast.makeText(MainActivity.this, "Đăng nhập FB thành công", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Đăng nhập FB thành công", LENGTH_SHORT).show();
                 getFbInfo();
             }
 
@@ -469,7 +477,7 @@ public class MainActivity extends Activity {
 
     public void updateUI(GoogleSignInAccount account) {
         if (account != null)
-            Toast.makeText(MainActivity.this, "đã nhập thành công", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "đã nhập thành công", LENGTH_SHORT).show();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -487,7 +495,7 @@ public class MainActivity extends Activity {
             Account addAccount = new Account(id, name, token, date);
             onCheckDB(addAccount);
             Log.i("LoginGG: " + date, "ID: " + id + "//name " + name + "token" + token);
-            Toast.makeText(MainActivity.this, "Đăng nhập GG thành công ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "Đăng nhập GG thành công ", LENGTH_SHORT).show();
 
         } catch (ApiException | IOException e) {
             // The ApiException status code indicates the detailed failure reason.

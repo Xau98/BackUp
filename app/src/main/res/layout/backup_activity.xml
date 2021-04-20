@@ -37,7 +37,7 @@
         android:layout_marginBottom="12dp">
 
         <EditText
-            android:id="@+id/editText"
+            android:id="@+id/edittext_name_backup"
             android:layout_width="300dp"
             android:layout_height="50dp"
             android:text="Bản sao lưu B86"
@@ -52,10 +52,11 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:background="#fff"
+            android:visibility="gone"
             android:src="@drawable/ic_check_black_24dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/editText"
+            app:layout_constraintStart_toEndOf="@+id/edittext_name_backup"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="MissingConstraints" />
 
@@ -65,7 +66,7 @@
             android:layout_marginStart="10dp"
             android:text="23/04/2020 11:11"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editText"
+            app:layout_constraintTop_toBottomOf="@+id/edittext_name_backup"
             tools:ignore="MissingConstraints"
             tools:layout_editor_absoluteX="0dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>

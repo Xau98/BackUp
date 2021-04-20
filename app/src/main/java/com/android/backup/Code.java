@@ -31,7 +31,7 @@ public class Code {
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
         String token = sharedPreferences.getString("token","//");
         Log.d("Tiennvh", "encrypt: "+ token);
-        String key = token+"@backup";
+        String key = token+"@nguyenvantienbackup";
         SecretKeySpec sks = new SecretKeySpec( key.getBytes() ,
                 "AES");
         // Create cipher

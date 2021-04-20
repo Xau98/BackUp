@@ -135,6 +135,7 @@
             <TextView
                 android:layout_width="250dp"
                 android:layout_height="30dp"
+                android:id="@+id/textview_backuplast"
                 android:text="Lần cuối - 11:11  Hôm nay "
                 app:layout_constraintTop_toBottomOf="@+id/bt_backup_now"
                 app:layout_constraintStart_toStartOf="parent"

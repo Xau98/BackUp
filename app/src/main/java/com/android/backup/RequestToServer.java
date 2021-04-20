@@ -2,11 +2,15 @@ package com.android.backup;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.backup.activity.MainActivity;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -22,7 +26,7 @@ public class RequestToServer {
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private Activity mActivity;
-    public static final String AD_SERVER="http://172.36.68.238:2405/";
+    public static final String AD_SERVER="http://10.2.22.50:2405/";
     public RequestToServer(Activity activity) {
         this.mActivity = activity;
     }
@@ -50,13 +54,16 @@ public class RequestToServer {
     }
 
 // RequestToServer.upload("uploadfile",handleFile.PATH_ROOT+"/Android/test2.zip", callback );
-    public static  void upload(String path, String namePath , Callback callback, ProgressBar progressBar , TextView status){
+    public static  void upload(Context context, String path, String namePath , Callback callback, ProgressBar progressBar , TextView status){
         OkHttpClient client = new OkHttpClient();
         String url = AD_SERVER + path;
         File file = new File(namePath);
-        String fileExtention = getFileExt(file.getName());
-        String filename = file.getName();
-        MultipartBody body = RequestBuilder.uploadRequestBody(filename, fileExtention, "someUploadToken", file);
+        /*String fileExtention = getFileExt(file.getName());
+        String filename = file.getName();*/
+        SharedPreferences sharedPref =  context.getSharedPreferences(MainActivity.SHAREPREFENCE,  context.MODE_PRIVATE);
+        String id = sharedPref.getString("id", null);
+        String token = sharedPref.getString("token", null);
+        MultipartBody body = RequestBuilder.uploadRequestBody(id, token , "someUploadToken", file);
         CountingRequestBody monitoredRequest = new CountingRequestBody(body, new CountingRequestBody.Listener() {
             @Override
             public void onRequestProgress(long bytesWritten, long contentLength) {
@@ -80,6 +87,7 @@ public class RequestToServer {
                 .build();
 
         client.newCall(request).enqueue(callback);
+
     }
     //
 
