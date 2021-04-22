@@ -23,6 +23,7 @@ import androidx.fragment.app.Fragment;
 
 import com.android.backup.Code;
 import com.android.backup.CompressionFile;
+import com.android.backup.ConvertNameFile;
 import com.android.backup.Dialog;
 import com.android.backup.FileItem;
 import com.android.backup.R;
@@ -150,10 +151,10 @@ public class FragmentBackuping extends Fragment {
         super.onResume();
         String isContinue = "false";
         for (int i=0;i<mListFileChecked.size();i++){
-            CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+ mListFileChecked.get(i).getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip");
+            String convertName = ConvertNameFile.NameFolderToFile(mListFileChecked.get(i).getName().toString());
+            CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+ mListFileChecked.get(i).getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip");
             try {
-                Code.encrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
-
+                Code.encrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+convertName+".txt");
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (NoSuchAlgorithmException e) {
@@ -165,9 +166,9 @@ public class FragmentBackuping extends Fragment {
             }
             if(mJsonData!=null)
                 isContinue = mJsonData;
-            String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt";
+            String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ convertName +".txt";
             RequestToServer.upload(getContext(),isContinue ,"uploadfile",namePath, callback, mProgressBar, mStatusLoad );
-            handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip");
+            handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip");
 
         }
     }

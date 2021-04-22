@@ -8,12 +8,14 @@ public class ItemListRestore implements Serializable {
     private String dateBackup;
     private String devices;
     private int type;
-    public ItemListRestore(int ID, String name, String dateBackup, String devices, int type) {
+    private String path;
+    public ItemListRestore(int ID, String name, String dateBackup, String devices, int type, String path) {
         this.ID = ID;
         this.name = name;
         this.dateBackup = dateBackup;
         this.devices = devices;
         this.type =type;
+        this.path = path;
     }
 
     public int getID() {
@@ -54,5 +56,13 @@ public class ItemListRestore implements Serializable {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

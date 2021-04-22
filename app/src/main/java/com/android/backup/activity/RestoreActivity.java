@@ -12,6 +12,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -41,6 +42,7 @@ import okhttp3.Response;
 
 public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup {
     public static final  int MSG_LIST_RESTORE = 9;
+    public static final int MSG_DELETE_RESTORE = 10;
     RecyclerView mRecyclerViewListRestore ,mRecyclerViewListRestoreOther;
     ArrayList <ItemListRestore> mListRestore;
     ArrayList <ItemListRestore> mListRestoreOther;
@@ -51,6 +53,8 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
     Dialog dialog= new Dialog();
     int mPositionDelete = -1 ;
     String mJsonData;
+    Handler mHandler;
+    Callback mCallback;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,8 +65,6 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
         mListRestoreOther =new ArrayList<>();
         mCheckBoxAll = findViewById(R.id.checkbox_all_restore);
         mBTDelete = findViewById(R.id.bt_delete_all_restore);
-        init();
-
         adapterItemFile= new AdapterListFileRestore(this,mListRestore );
         adapterItemFile.setOnCallBackRestore(this);
         mLinearLayout = findViewById(R.id.linear_title);
@@ -153,16 +155,14 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
 
         itemTouchHelper.attachToRecyclerView(mRecyclerViewListRestore);
         dialog.setConfirmListener(this);
-    }
 
-
-  public void init(){
-        Handler handler = new Handler(){
+        mHandler = new Handler(){
             @Override
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
                     case MSG_LIST_RESTORE:
                         if (!mJsonData.equals("False")) {
+                            Log.d("Tiennvh", "handleMessage: okee");
                             JSONObject Jobject = null;
                             try {
                                 Jobject = new JSONObject(mJsonData);
@@ -173,24 +173,26 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
                                     String name_history = Jobject1.getString("name_history");
                                     String date_backup = Jobject1.getString("date_backup");
                                     String devices_backup = Jobject1.getString("devices_backup");
-
-                                    ItemListRestore ir = new ItemListRestore(Integer.parseInt(id_history),name_history,date_backup ,devices_backup,0);
+                                    String pathsave = Jobject1.getString("pathsave");
+                                    ItemListRestore ir = new ItemListRestore(Integer.parseInt(id_history),name_history,date_backup ,devices_backup,0, pathsave);
                                     mListRestore.add(ir);
                                     adapterItemFile.notifyDataSetChanged();
                                 }
                             } catch (JSONException jsonException) {
                                 jsonException.printStackTrace();
                             }
-
-
-                            break;
                         }else {
-                            Log.d("Tiennvh", "handleMessage: error");
+                            Toast.makeText(getBaseContext(), " Thất bại ", Toast.LENGTH_SHORT).show();
                         }
+                        break;
+                    case MSG_DELETE_RESTORE:
+                        Toast.makeText(getBaseContext(), " Đã xóa file backup ", Toast.LENGTH_SHORT).show();
+                        break;
                 }
             }
         };
-        Callback mCallback = new Callback() {
+
+        mCallback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Log.d("Tiennvh", "onFailure: "+e);
@@ -200,11 +202,19 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if(response.isSuccessful()){
                     mJsonData = response.body().string();
-                    handler.sendEmptyMessage(MSG_LIST_RESTORE);
+                    if(mJsonData.equals("True"))
+                        mHandler.sendEmptyMessage(MSG_DELETE_RESTORE);
+                    else
+                        mHandler.sendEmptyMessage(MSG_LIST_RESTORE);
                 }
 
             }
         };
+        init();
+    }
+
+
+  public void init(){
         SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
         JSONObject jsonObject = new JSONObject();
         try {
@@ -248,6 +258,20 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
        if(mPositionDelete !=-1){
            for(int i=0;i<mListRestore.size();i++){
                if(mListRestore.get(i).getID()==mPositionDelete){
+                   SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+                   JSONObject jsonObject = new JSONObject();
+                   try {
+                       jsonObject.put("id", sharedPref.getString("id", null));
+                       jsonObject.put("token", sharedPref.getString("token", null));
+                       jsonObject.put("id_history",mPositionDelete);
+                       jsonObject.put("pathsave",mListRestore.get(i).getPath());
+                       String path = "removebackup";
+                       RequestToServer.post(path, jsonObject, mCallback);
+                   } catch (JSONException e) {
+                       e.printStackTrace();
+                       Log.d("Tiennvh", "onCallbackBackup: "+e);
+                   }
+
                    mListRestore.remove(i);
                    adapterItemFile.notifyDataSetChanged();
                }
