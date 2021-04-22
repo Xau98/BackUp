@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import com.android.backup.Dialog;
 import com.android.backup.R;
 import com.android.backup.fragment.FragmentBackuping;
+import com.android.backup.handleFile;
 
 public class FragmentStatusBackUp extends Fragment {
     ImageButton mBTBackup;
@@ -22,6 +23,7 @@ public class FragmentStatusBackUp extends Fragment {
     boolean isStatus;
     long mCapacity = 0;
     Dialog dialog;
+
     public FragmentStatusBackUp(Dialog dialog, long capacity) {
         this.dialog =dialog;
         mCapacity = capacity;
@@ -34,7 +36,8 @@ public class FragmentStatusBackUp extends Fragment {
        View view= inflater.inflate(R.layout.fragment_choose,container,false);
         mBTBackup = view.findViewById(R.id.bt_confirm_save);
         mShowCapacity = view.findViewById(R.id.show_capacity);
-        mShowCapacity.setText( mCapacity+"");
+
+        mShowCapacity.setText( Math.ceil((handleFile.KBToMB(mCapacity)) * 10) / 10   +" MB");
         mBTBackup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

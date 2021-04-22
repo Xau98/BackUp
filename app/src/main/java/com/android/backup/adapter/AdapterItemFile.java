@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.backup.FileItem;
 import com.android.backup.R;
+import com.android.backup.handleFile;
 
 import java.util.ArrayList;
 
@@ -50,7 +51,7 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FileItem fileItem = mList.get(position);
         holder.nameFile.setText(fileItem.getName());
-        holder.capacity.setText(fileItem.getSize()+"");
+        holder.capacity.setText( Math.ceil((handleFile.KBToMB(fileItem.getSize())) * 10) / 10   +" MB");
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

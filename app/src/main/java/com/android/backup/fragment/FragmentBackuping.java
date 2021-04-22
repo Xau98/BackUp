@@ -50,6 +50,7 @@ import static android.content.Context.MODE_PRIVATE;
 import static android.widget.Toast.LENGTH_SHORT;
 
 public class FragmentBackuping extends Fragment {
+    public static final int MSG_BACKUP = 3;
     ArrayList <FileItem> mListFileChecked;
     ProgressBar mProgressBar;
     TextView showTotalFileChecked , mStatusLoad;
@@ -59,6 +60,7 @@ public class FragmentBackuping extends Fragment {
     Dialog dialog;
     String mJsonData ;
     Handler mHandler;
+    int mCountUpload = 0;
     public FragmentBackuping(ArrayList<FileItem> listFileChecked, Dialog dialog) {
         mListFileChecked = listFileChecked;
         this.dialog=dialog;
@@ -107,14 +109,17 @@ public class FragmentBackuping extends Fragment {
             @Override
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
-                    case 3:
+                    case MSG_BACKUP:
                         if (!mJsonData.equals("False")) {
-                            mCallbackBackup.onCallbackBackup(true);
+                            if(mCountUpload==0)
+                             mCallbackBackup.onCallbackBackup(mJsonData);
                             mStopBackup.setVisibility(View.INVISIBLE);
                             mPauseBackup.setVisibility(View.INVISIBLE);
                             for (int i=0;i<mListFileChecked.size();i++){
                                 handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
                             }
+                            mListFileChecked.clear();
+                            mCountUpload++;
                         }
                 }
             }
@@ -123,18 +128,19 @@ public class FragmentBackuping extends Fragment {
         callback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                mCallbackBackup.onCallbackBackup(false);
+                mCallbackBackup.onCallbackBackup("False");
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                     mJsonData = response.body().string();
-                    mHandler.sendEmptyMessage(3);
+                    mHandler.sendEmptyMessage(MSG_BACKUP);
                 }else
-                    mCallbackBackup.onCallbackBackup(false);
+                    mCallbackBackup.onCallbackBackup("False");
             }
         };
+
         showTotalFileChecked.setText(handleFile.totalCapacity(mListFileChecked)+"");
         return view;
     }
@@ -142,6 +148,7 @@ public class FragmentBackuping extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        String isContinue = "false";
         for (int i=0;i<mListFileChecked.size();i++){
             CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+ mListFileChecked.get(i).getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip");
             try {
@@ -156,14 +163,16 @@ public class FragmentBackuping extends Fragment {
             } catch (InvalidKeyException e) {
                 e.printStackTrace();
             }
-
-            RequestToServer.upload(getContext(),"uploadfile",handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt", callback, mProgressBar, mStatusLoad );
+            if(mJsonData!=null)
+                isContinue = mJsonData;
+            String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt";
+            RequestToServer.upload(getContext(),isContinue ,"uploadfile",namePath, callback, mProgressBar, mStatusLoad );
             handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".zip");
 
         }
     }
 
    public interface  callbackBackup{
-        void onCallbackBackup(boolean isSuccessful);
+        void onCallbackBackup(String isSuccessful);
     }
 }

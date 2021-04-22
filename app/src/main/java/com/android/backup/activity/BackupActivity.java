@@ -19,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.backup.ItemListRestore;
 import com.android.backup.RequestToServer;
 import com.android.backup.ServiceBackup;
 import com.android.backup.adapter.AdapterItemFile;
@@ -55,7 +56,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     boolean isRestore = false;
     long mTotalCapacityChecked = 0;
     ArrayList <FileItem> mListFileChecked;
-    TextView mNameTab;
+    TextView mNameTab, mShowDateBackup;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +67,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         mNameBackup = findViewById(R.id.edittext_name_backup);
         mNameTab = findViewById(R.id.name_tab_backup_activity);
         mBTUpdateName = findViewById(R.id.bt_change_name);
+        mShowDateBackup = findViewById(R.id.show_date_backup);
         mListFileChecked = new ArrayList<>();
         mRecyclerView = findViewById(R.id.recyclerview_backup);
         mListAllFile = new ArrayList<>();
@@ -75,27 +77,45 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             isRestore = bundle.getBoolean("restore");
         }
         if(isRestore){
+            ItemListRestore itemListRestore = (ItemListRestore) bundle.getSerializable("ItemListRestore");
+            mNameBackup.setText(itemListRestore.getName());
+            mShowDateBackup.setText(itemListRestore.getDateBackup());
             restoreFile();
             mNameTab.setText(bundle.getString("NameTab"));
             mBTUpdateName.setVisibility(View.VISIBLE);
-            int ID = bundle.getInt("position");
-            int position=0;
-
-            mFragmentRestoring = new FragmentRestoring(dialog,ID);
+            mFragmentRestoring = new FragmentRestoring(dialog,0);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.FagmentBackup, mFragmentRestoring).commit();
             adapterListFile=new AdapterItemFile(this, mListAllFile, true ,true);
 
-
-
         }else {
             initFile();
+            mBTUpdateName.setVisibility(View.GONE);
             fragmentStatusBackUp = new FragmentStatusBackUp(dialog, 0);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
             adapterListFile=new AdapterItemFile(this, mListAllFile, true ,false);
         }
-
+        mBTUpdateName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("id", sharedPref.getString("id", null));
+                    jsonObject.put("token", sharedPref.getString("token", null));
+                    jsonObject.put("newname", mNameBackup.getText().toString());
+                    int ID_history = bundle.getInt("position");
+                    Log.d("Tiennvh", "onClick: "+ ID_history);
+                    jsonObject.put("id_history", ID_history+"");
+                    String path = "renamebackup";
+                    RequestToServer.post(path, jsonObject, mCallback);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.d("Tiennvh", "onCallbackBackup: "+e);
+                }
+            }
+        });
 
 
         mRecyclerView.setAdapter(adapterListFile);
@@ -137,7 +157,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void restoreFile(){
-        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT);
+        //mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT);
     }
 
     @Override
@@ -199,24 +219,23 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
 
     @Override
-    public void onCallbackBackup(boolean isSuccessful) {
+    public void onCallbackBackup(String isSuccessful) {
         //Bkav Tiennvh: update DB
-        if(isSuccessful) {
+        if(!isSuccessful.equals("False")) {
              SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("id", sharedPref.getString("id", "0"));
                 jsonObject.put("token", sharedPref.getString("token", "0"));
-                Log.d("Tiennvh", "onCallbackBackup: "+sharedPref.getString("token", "0"));
                 jsonObject.put("namebackup", mNameBackup.getText().toString());
                 jsonObject.put("namedevice", "Bphone 4");
+                jsonObject.put("path", isSuccessful);
                 String path = "insertbackup";
                 RequestToServer.post(path, jsonObject, mCallback);
             } catch (JSONException e) {
                 e.printStackTrace();
                 Log.d("Tiennvh", "onCallbackBackup: "+e);
             }
-            Log.d("Tiennvh", "onCallbackBackup: OKe");
         }else{
             Log.d("Tiennvh", "onCallbackBackup: Not OKE");
         }

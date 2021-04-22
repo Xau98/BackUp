@@ -104,7 +104,7 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
         holder.mItemRestore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onCallBackRestore.onClickItemRestore(mList.get(position).getID());
+                onCallBackRestore.onClickItemRestore(mList.get(position));
             }
         });
     }
@@ -133,6 +133,6 @@ public class AdapterListFileRestore extends RecyclerView.Adapter<AdapterListFile
     }
 public interface onCallBackRestore{
          void onConfirmDeleteRestore(int position);
-         void onClickItemRestore(int position);
+         void onClickItemRestore(ItemListRestore itemListRestore);
 }
 }

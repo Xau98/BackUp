@@ -1,6 +1,8 @@
 package com.android.backup;
 
-public class ItemListRestore {
+import java.io.Serializable;
+
+public class ItemListRestore implements Serializable {
     private int ID;
     private String name;
     private String dateBackup;

@@ -54,6 +54,10 @@ public class handleFile {
         return total;
     }
 
+    public static Float KBToMB(long KB)
+    {
+        return (float) KB / (1024*1024);
+    }
     //
     public static boolean duplicateFileItem(ArrayList<FileItem> list, FileItem fileItem){
         for(int i=0;i<list.size();i++){

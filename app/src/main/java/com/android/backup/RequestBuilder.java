@@ -26,7 +26,7 @@ public class RequestBuilder {
                 .add("logintoken", token)
                 .build();
     }
-    public static MultipartBody uploadRequestBody(String id, String token, String name, File file) {
+    public static MultipartBody uploadRequestBody(String id, String token, String pathSave, File file) {
         String content_type = getMimeType(file.getPath());
         String file_path = file.getAbsolutePath();
         RequestBody file_body = RequestBody.create(MediaType.parse(content_type), file);
@@ -36,6 +36,7 @@ public class RequestBuilder {
                 .addFormDataPart("uploaded_file", file_path.substring(file_path.lastIndexOf("/") + 1), file_body)
                 .addFormDataPart("id",id )
                 .addFormDataPart("token",token)
+                .addFormDataPart("pathsave", pathSave)
                 .build();
     }
     private static String getMimeType(String path) {

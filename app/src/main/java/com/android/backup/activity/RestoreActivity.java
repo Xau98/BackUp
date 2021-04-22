@@ -1,7 +1,10 @@
 package com.android.backup.activity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,12 +24,23 @@ import com.android.backup.Dialog;
 import com.android.backup.ItemListRestore;
 import com.android.backup.OnSwipeTouchListener;
 import com.android.backup.R;
+import com.android.backup.RequestToServer;
 import com.android.backup.adapter.AdapterListFileRestore;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
-public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup {
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
+public class RestoreActivity extends AppCompatActivity implements AdapterListFileRestore.onCallBackRestore , Dialog.onConfirmBackup {
+    public static final  int MSG_LIST_RESTORE = 9;
     RecyclerView mRecyclerViewListRestore ,mRecyclerViewListRestoreOther;
     ArrayList <ItemListRestore> mListRestore;
     ArrayList <ItemListRestore> mListRestoreOther;
@@ -34,6 +48,9 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
     CheckBox mCheckBoxAll;
     ImageButton mBTDelete;
     AdapterListFileRestore adapterItemFile;
+    Dialog dialog= new Dialog();
+    int mPositionDelete = -1 ;
+    String mJsonData;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -139,15 +156,68 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
     }
 
 
-public void init(){
-        for(int i=0;i<5;i++) {
-            ItemListRestore ir = new ItemListRestore(i,"backup "+i,"16/4/2021","Bphone",0);
-            mListRestore.add(ir);
-            mListRestoreOther.add(ir);
+  public void init(){
+        Handler handler = new Handler(){
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                switch (msg.what) {
+                    case MSG_LIST_RESTORE:
+                        if (!mJsonData.equals("False")) {
+                            JSONObject Jobject = null;
+                            try {
+                                Jobject = new JSONObject(mJsonData);
+                                JSONArray jsonArray = Jobject.getJSONArray("content");
+                                for (int i=0;i<jsonArray.length();i++) {
+                                    JSONObject Jobject1 = jsonArray.getJSONObject(i);
+                                    String id_history = Jobject1.getString("id_history");
+                                    String name_history = Jobject1.getString("name_history");
+                                    String date_backup = Jobject1.getString("date_backup");
+                                    String devices_backup = Jobject1.getString("devices_backup");
+
+                                    ItemListRestore ir = new ItemListRestore(Integer.parseInt(id_history),name_history,date_backup ,devices_backup,0);
+                                    mListRestore.add(ir);
+                                    adapterItemFile.notifyDataSetChanged();
+                                }
+                            } catch (JSONException jsonException) {
+                                jsonException.printStackTrace();
+                            }
+
+
+                            break;
+                        }else {
+                            Log.d("Tiennvh", "handleMessage: error");
+                        }
+                }
+            }
+        };
+        Callback mCallback = new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d("Tiennvh", "onFailure: "+e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if(response.isSuccessful()){
+                    mJsonData = response.body().string();
+                    handler.sendEmptyMessage(MSG_LIST_RESTORE);
+                }
+
+            }
+        };
+        SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("id", sharedPref.getString("id", null));
+            jsonObject.put("token", sharedPref.getString("token", null));
+            String path = "getlistbackup";
+            RequestToServer.post(path, jsonObject, mCallback);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.d("Tiennvh", "onCallbackBackup: "+e);
         }
 }
-    Dialog dialog= new Dialog();
-    int mPositionDelete = -1 ;
+
     @Override
     public void onConfirmDeleteRestore(int position) {
         LayoutInflater inflater = getLayoutInflater();
@@ -156,11 +226,19 @@ public void init(){
     }
 
     @Override
-    public void onClickItemRestore(int position) {
+    protected void onResume() {
+        super.onResume();
+//        mListRestore.clear();
+//        Log.d("Tiennvh", "onResume: "+ mListRestore.size());
+        //init();
+    }
+
+    @Override
+    public void onClickItemRestore(ItemListRestore itemListRestore) {
         Intent intent=new Intent(this, BackupActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK );
         intent.putExtra("NameTab","Chi tiết");
-        intent.putExtra("Position",position);
+        intent.putExtra("ItemListRestore",itemListRestore);
         intent.putExtra("restore",true );
         startActivity(intent);
     }

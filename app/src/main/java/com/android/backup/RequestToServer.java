@@ -54,7 +54,7 @@ public class RequestToServer {
     }
 
 // RequestToServer.upload("uploadfile",handleFile.PATH_ROOT+"/Android/test2.zip", callback );
-    public static  void upload(Context context, String path, String namePath , Callback callback, ProgressBar progressBar , TextView status){
+    public static  void upload(Context context,String  pathSave , String path, String namePath , Callback callback, ProgressBar progressBar , TextView status){
         OkHttpClient client = new OkHttpClient();
         String url = AD_SERVER + path;
         File file = new File(namePath);
@@ -63,7 +63,7 @@ public class RequestToServer {
         SharedPreferences sharedPref =  context.getSharedPreferences(MainActivity.SHAREPREFENCE,  context.MODE_PRIVATE);
         String id = sharedPref.getString("id", null);
         String token = sharedPref.getString("token", null);
-        MultipartBody body = RequestBuilder.uploadRequestBody(id, token , "someUploadToken", file);
+        MultipartBody body = RequestBuilder.uploadRequestBody(id, token , pathSave, file);
         CountingRequestBody monitoredRequest = new CountingRequestBody(body, new CountingRequestBody.Listener() {
             @Override
             public void onRequestProgress(long bytesWritten, long contentLength) {
