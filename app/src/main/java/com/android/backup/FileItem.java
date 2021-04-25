@@ -46,6 +46,11 @@ public class FileItem {
         size = getDirectorySizeLegacy(file);
     }
 
+    public FileItem(String name){
+        this.name = name;
+    }
+
+
     public static long getDirectorySizeLegacy(File dir) {
 
         long length = 0;

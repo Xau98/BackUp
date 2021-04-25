@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
@@ -32,15 +35,19 @@ import com.android.backup.R;
 import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
+
+import static android.widget.Toast.LENGTH_SHORT;
 
 public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder, FragmentBackuping.callbackBackup {
     FragmentStatusBackUp fragmentStatusBackUp;
@@ -57,6 +64,10 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     long mTotalCapacityChecked = 0;
     ArrayList <FileItem> mListFileChecked;
     TextView mNameTab, mShowDateBackup;
+    ItemListRestore itemListRestore;
+    Handler mHandler;
+    String mJsonData;
+    AdapterItemFile adapterListFile;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,13 +82,60 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         mListFileChecked = new ArrayList<>();
         mRecyclerView = findViewById(R.id.recyclerview_backup);
         mListAllFile = new ArrayList<>();
-        AdapterItemFile adapterListFile;
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(@NonNull Message msg) {
+                switch (msg.what) {
+                    case 9:
+                        if (!mJsonData.equals("False")) {
+                            try {
+                                JSONObject Jobject = new JSONObject(mJsonData);
+                                JSONArray listData = Jobject.getJSONArray("list");
+                                for(int i=0;i<listData.length();i++){
+                                    String name = (String) listData.get(i);
+                                    String name1= name.substring(0, name.length()-4);
+                                    FileItem fileItem = new FileItem(name1);
+                                    mListAllFile.add(fileItem);
+                                    adapterListFile.notifyDataSetChanged();
+                                }
+                                Log.d("Tiennvh", "handleMessage: "+ mListAllFile.size());
+                            } catch (JSONException e) {
+                                Log.d("Tiennvh", "handleMessage: " + e);
+                            }
+                            break;
+                        }else {
+
+                            Toast.makeText(getApplicationContext(), "Đăng nhập thất bại "  , LENGTH_SHORT).show();
+                        }
+                }
+            }
+        };
+        mCallback= new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d("Tiennvh", "onFailure: "+e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    Log.d("Tiennvh", "isSuccessful: ");
+                    mJsonData = response.body().string();
+                    if(!mJsonData.equals("True"))
+                        mHandler.sendEmptyMessage(9);
+                    Log.d("Tiennvh", "isSuccessful: "+ mJsonData);
+                }
+            }
+        };
+        SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+        String id = sharedPref.getString("id", null);
+        String token = sharedPref.getString("token", null) ;
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             isRestore = bundle.getBoolean("restore");
         }
         if(isRestore){
-            ItemListRestore itemListRestore = (ItemListRestore) bundle.getSerializable("ItemListRestore");
+            itemListRestore = (ItemListRestore) bundle.getSerializable("ItemListRestore");
             mNameBackup.setText(itemListRestore.getName());
             mShowDateBackup.setText(itemListRestore.getDateBackup());
             restoreFile();
@@ -87,6 +145,18 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.FagmentBackup, mFragmentRestoring).commit();
             adapterListFile=new AdapterItemFile(this, mListAllFile, true ,true);
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("id", id);
+                jsonObject.put("token", token);
+                jsonObject.put("path",itemListRestore.getPath());
+                String path = "getlistdata";
+                RequestToServer.post(path, jsonObject, mCallback);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.d("Tiennvh", "onCallbackBackup: "+e);
+            }
+
 
         }else {
             initFile();
@@ -99,15 +169,12 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         mBTUpdateName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("id", sharedPref.getString("id", null));
-                    jsonObject.put("token", sharedPref.getString("token", null));
+                    jsonObject.put("id", id);
+                    jsonObject.put("token", token);
                     jsonObject.put("newname", mNameBackup.getText().toString());
-                    int ID_history = bundle.getInt("position");
-                    Log.d("Tiennvh", "onClick: "+ ID_history);
-                    jsonObject.put("id_history", ID_history+"");
+                    jsonObject.put("id_history", itemListRestore.getID()+"");
                     String path = "renamebackup";
                     RequestToServer.post(path, jsonObject, mCallback);
                 } catch (JSONException e) {
@@ -132,20 +199,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                 onBackPressed();
             }
         });
-        mCallback= new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.d("Tiennvh", "onFailure: "+e);
-            }
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String mJsonData = response.body().string();
-                    Log.d("Tiennvh", "isSuccessful: "+ mJsonData);
-                }
-            }
-        };
 
     }
 
@@ -162,6 +216,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     @Override
     public void onConfirm(int type) {
+        Log.d("Tiennvh", isRestore+"onConfirm: "+type);
         if(type == 0) {
             if (isRestore) {
                 fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
@@ -170,9 +225,30 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
+                Callback mCallback1= new Callback() {
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                        Log.d("Tiennvh", "onFailure: "+e);
+                    }
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        if (response.isSuccessful()) {
+                            Log.d("Tiennvh", "onResponse: ");
+
+                            FileOutputStream fos = new FileOutputStream(handleFile.PATH_ROOT+"/"+ itemListRestore.getPath());
+                            fos.write(response.body().bytes());
+                            fos.close();
+                        }
+                    }
+                };
+                RequestToServer.get("download",  mCallback1);
+
+
+
 
             } else {
-                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
+               fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
