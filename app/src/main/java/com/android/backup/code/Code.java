@@ -1,4 +1,4 @@
-package com.android.backup;
+package com.android.backup.code;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -30,8 +30,7 @@ public class Code {
         // Length is 16 byte
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
         String token = sharedPreferences.getString("token","//");
-        Log.d("Tiennvh", "encrypt: "+ token);
-        String key = token+"@nguyenvantienbackup";
+        String key = "@nguyenvantienba";
         SecretKeySpec sks = new SecretKeySpec( key.getBytes() ,
                 "AES");
         // Create cipher
@@ -52,14 +51,14 @@ public class Code {
     }
 
     //"MyDifficultPassw"
-    static void decrypt(Context context,String pathInput , String pathOutput) throws IOException, NoSuchAlgorithmException,
+    public static void decrypt(Context context,String pathInput , String pathOutput) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
         FileInputStream fileInputStream = new FileInputStream(pathInput);
         FileOutputStream fileOutputStream = new FileOutputStream(pathOutput);
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
         String token = sharedPreferences.getString("token","//");
         Log.d("Tiennvh", "encrypt: "+ token);
-        String key = token+"@backup";
+        String key = "@nguyenvantienba";
         SecretKeySpec sks = new SecretKeySpec(key.getBytes(),
                 "AES");
         Cipher cipher = Cipher.getInstance("AES");

@@ -1,6 +1,5 @@
 package com.android.backup.activity;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,9 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.backup.code.AsyncTaskDownload;
+import com.android.backup.code.Code;
 import com.android.backup.ItemListRestore;
 import com.android.backup.RequestToServer;
-import com.android.backup.ServiceBackup;
 import com.android.backup.adapter.AdapterItemFile;
 import com.android.backup.Dialog;
 import com.android.backup.FileItem;
@@ -39,9 +39,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+
+import javax.crypto.NoSuchPaddingException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -68,6 +73,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     Handler mHandler;
     String mJsonData;
     AdapterItemFile adapterListFile;
+    SharedPreferences mSharedPref;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -127,9 +133,9 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                 }
             }
         };
-        SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
-        String id = sharedPref.getString("id", null);
-        String token = sharedPref.getString("token", null) ;
+        mSharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+        String id = mSharedPref.getString("id", null);
+        String token = mSharedPref.getString("token", null) ;
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             isRestore = bundle.getBoolean("restore");
@@ -213,19 +219,20 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     public void restoreFile(){
         //mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT);
     }
-
+    FileOutputStream fos;
+    String mPathfile;
     @Override
     public void onConfirm(int type) {
         Log.d("Tiennvh", isRestore+"onConfirm: "+type);
         if(type == 0) {
             if (isRestore) {
-                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
+                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, true);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
-                Callback mCallback1= new Callback() {
+               /* Callback mCallback1= new Callback() {
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
                         Log.d("Tiennvh", "onFailure: "+e);
@@ -235,20 +242,50 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                     public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                         if (response.isSuccessful()) {
                             Log.d("Tiennvh", "onResponse: ");
-
-                            FileOutputStream fos = new FileOutputStream(handleFile.PATH_ROOT+"/"+ itemListRestore.getPath());
                             fos.write(response.body().bytes());
+                            try {
+                                Log.d("Tiennvh", "onResponse: "+mPathfile);
+                                Code.decrypt(getApplicationContext(),mPathfile,handleFile.PATH_ROOT+"/CompressionFile");
+                                Code.decrypt(getApplicationContext(),handleFile.PATH_ROOT+"/CompressionFile/Pictures.txt",handleFile.PATH_ROOT+"/CompressionFile/"+mPathfile+"2.zip");
+                            } catch (NoSuchAlgorithmException e) {
+                                e.printStackTrace();
+                                Log.d("Tiennvh", "onResponse: "+e);
+                            } catch (NoSuchPaddingException e) {
+                                e.printStackTrace();
+                                Log.d("Tiennvh", "onResponse: "+e);
+                            } catch (InvalidKeyException e) {
+                                e.printStackTrace();
+                                Log.d("Tiennvh", "onResponse: "+e);
+                            }
                             fos.close();
                         }
                     }
                 };
-                RequestToServer.get("download",  mCallback1);
+                String id = mSharedPref.getString("id", null);
+                String token = mSharedPref.getString("token", null) ;
+                AsyncTaskDownload asyncTaskDownload;
+                for(int i=0;i<mListAllFile.size();i++){
+                    asyncTaskDownload = new AsyncTaskDownload(this,mListAllFile.get(i) );
+                    asyncTaskDownload.execute();
+                    JSONObject jsonObject = new JSONObject();
+                    try {
+                        jsonObject.put("id", id);
+                        jsonObject.put("token", token);
+                        jsonObject.put("path", mListAllFile.get(i).getPath()+"/"+ mListAllFile.get(i).getName()+".txt" );
+                        mPathfile = handleFile.PATH_ROOT+"/CompressionFile/"+ mListAllFile.get(i).getName()+".zip";
+                        fos = new FileOutputStream(handleFile.PATH_ROOT+"/CompressionFile/"+ mListAllFile.get(i).getName()+".txt" );
+                        RequestToServer.post("download", jsonObject,  mCallback1);
+                    } catch (FileNotFoundException | JSONException e) {
+                    e.printStackTrace();
+                }
+                }*/
+
 
 
 
 
             } else {
-               fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog);
+               fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, false);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();

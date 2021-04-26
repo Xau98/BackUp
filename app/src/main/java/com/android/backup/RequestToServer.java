@@ -26,7 +26,7 @@ public class RequestToServer {
 
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private Activity mActivity;
-    public static final String AD_SERVER="http://45.76.144.34:2406/";
+    public static final String AD_SERVER="http://45.76.144.34:2405/";
     public RequestToServer(Activity activity) {
         this.mActivity = activity;
     }
