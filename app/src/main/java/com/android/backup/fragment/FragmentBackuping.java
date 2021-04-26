@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,14 +17,18 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import com.android.backup.code.AsyncTaskDownload;
 import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.Dialog;
 import com.android.backup.FileItem;
 import com.android.backup.R;
+import com.android.backup.code.Code;
 import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -125,13 +130,32 @@ public class FragmentBackuping extends Fragment {
             }
         };
 
+
+        if(!mIsRestore)
         showTotalFileChecked.setText(handleFile.totalCapacity(mListFileChecked)+"");
         return view;
     }
-
+    FileOutputStream fos;
     @Override
     public void onResume() {
         super.onResume();
+        Callback mCallback1= new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d("Tiennvh", "onFailure: "+e);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    Log.d("Tiennvh", "onResponse: ");
+
+                    fos.write(response.body().bytes());
+                    fos.close();
+
+                }
+            }
+        };
         if(!mIsRestore) {
             String namePathBackup = "false";
             AsyncTaskUpload myAsyncTaskCode;
@@ -162,6 +186,20 @@ public class FragmentBackuping extends Fragment {
             }
         }else {
 
+            AsyncTaskDownload asyncTaskDownload;
+            for (int i = 0; i < mListFileChecked.size(); i++) {
+
+                /*try {
+                    fos = new FileOutputStream(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt" );
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }*/
+
+
+                asyncTaskDownload = new AsyncTaskDownload( getContext(),mListFileChecked.get(i) ,mProgressBar, mStatusLoad);
+                asyncTaskDownload.execute();
+            }
         }
     }
 

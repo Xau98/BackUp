@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
+import net.lingala.zip4j.core.ZipFile;
 public class CompressionFile {
 
     public static final byte[] BUFFER = new byte[1024];
@@ -114,6 +114,7 @@ public class CompressionFile {
         byte[] buffer = new byte[1024];
 
         ZipInputStream zipIs = null;
+
         try {
             // Tạo đối tượng ZipInputStream để đọc file từ 1 đường dẫn (path).
             zipIs = new ZipInputStream(new FileInputStream(FILE_PATH));
@@ -152,5 +153,6 @@ public class CompressionFile {
             }
         }
     }
+
 
 }

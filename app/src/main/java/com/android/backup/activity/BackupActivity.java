@@ -100,7 +100,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                                 for(int i=0;i<listData.length();i++){
                                     String name = (String) listData.get(i);
                                     String name1= name.substring(0, name.length()-4);
-                                    FileItem fileItem = new FileItem(name1);
+                                    FileItem fileItem = new FileItem(name1,itemListRestore.getPath()+"/"+name);
                                     mListAllFile.add(fileItem);
                                     adapterListFile.notifyDataSetChanged();
                                 }
@@ -223,9 +223,9 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     String mPathfile;
     @Override
     public void onConfirm(int type) {
-        Log.d("Tiennvh", isRestore+"onConfirm: "+type);
         if(type == 0) {
             if (isRestore) {
+
                 fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, true);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
@@ -279,11 +279,6 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                     e.printStackTrace();
                 }
                 }*/
-
-
-
-
-
             } else {
                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, false);
                 fragmentBackuping.setCallbackBackup(this);

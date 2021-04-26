@@ -46,6 +46,11 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
+
+    }
+
+    @Override
+    protected String doInBackground(Void... voids) {
         Callback mCallback1= new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -59,6 +64,7 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
                     FileOutputStream fos = new FileOutputStream(handleFile.PATH_ROOT+"/CompressionFile/"+ mFileItem.getName()+".txt" );
                     fos.write(response.body().bytes());
                     fos.close();
+                    new AsyncTaskdecrypt().execute();
                 }
             }
         };
@@ -69,32 +75,39 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
         try {
             jsonObject.put("id", id);
             jsonObject.put("token", token);
-            jsonObject.put("path", mFileItem.getPath()+"/"+ mFileItem.getName()+".txt" );
+            Log.d("Tiennvh", "onPreExecute: "+mFileItem.getPath());
+            jsonObject.put("path", mFileItem.getPath());
             //mPathfile = handleFile.PATH_ROOT+"/CompressionFile/"+ mFileItem+".zip";
             RequestToServer.post("download", jsonObject,  mCallback1);
         } catch ( JSONException e) {
             e.printStackTrace();
         }
-    }
 
-    @Override
-    protected String doInBackground(Void... voids) {
-   try {
-       String namFile = mFileItem.getName();
-        Code.decrypt(mContext,handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt",handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".zip");
-    } catch (Exception e) {
-        e.printStackTrace();
-        Log.d("Tiennvh", "onResponse: "+e);
-    }
         return "Xong";
     }
 
-    @Override
-    protected void onPostExecute(String s) {
-        super.onPostExecute(s);
-        Log.d("Tiennvh", "onPostExecute: "+s);
-        String namFile = mFileItem.getName();
-        String pathinput=handleFile.PATH_ROOT+"/CompressionFile/"+namFile ;
-        CompressionFile.unZip(pathinput+".zip",pathinput);
+
+    class AsyncTaskdecrypt extends AsyncTask<Void,String , String>{
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            try {
+                String namFile = mFileItem.getName();
+                Code.decrypt(mContext,handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt",handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".zip");
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.d("Tiennvh", "onResponse: "+e);
+            }
+            return "OKE";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Log.d("Tiennvh", "onPostExecutedownload: "+s);
+            String namFile = mFileItem.getName();
+            String pathinput=handleFile.PATH_ROOT+"/CompressionFile/"+namFile ;
+            CompressionFile.unZip(pathinput+".zip",pathinput);
+        }
     }
 }
