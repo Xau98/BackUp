@@ -93,7 +93,8 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
         protected String doInBackground(Void... voids) {
             try {
                 String namFile = mFileItem.getName();
-                Code.decrypt(mContext,handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt",handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".zip");
+                Log.d("Tiennvh", "doInBackground: AsyncTaskdecrypt");
+                Code.decrypt(mContext,handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt",handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".zip",mProgressBar, mStatusLoad);
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.d("Tiennvh", "onResponse: "+e);
@@ -108,6 +109,8 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
             String namFile = mFileItem.getName();
             String pathinput=handleFile.PATH_ROOT+"/CompressionFile/"+namFile ;
             CompressionFile.unZip(pathinput+".zip",pathinput);
+            handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt");
+            handleFile.deleteFile(pathinput+".zip");
         }
     }
 }

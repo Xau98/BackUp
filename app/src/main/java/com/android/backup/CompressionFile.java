@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import net.lingala.zip4j.core.ZipFile;
+
 public class CompressionFile {
 
     public static final byte[] BUFFER = new byte[1024];
@@ -24,8 +24,7 @@ public class CompressionFile {
 
     /**
      * Nén tất cả các tập tin và thư mục trong thư mục đầu vào
-     * @param inputDir Thư mục đầu vào
-     * @param outputZipFile Tập tin đầu ra
+
      */
     public static void zipDirectory(String pathInput, String pathOutput) {
         File outputZipFile = new File(pathOutput);
@@ -131,6 +130,7 @@ public class CompressionFile {
                     new File(outFileName).mkdirs();
                 } else {
                     // Tạo một Stream để ghi dữ liệu vào file.
+                    new File(outFileName).getParentFile().mkdirs();
                     File file = new File(outFileName);
                     FileOutputStream fos = new FileOutputStream(file);
 

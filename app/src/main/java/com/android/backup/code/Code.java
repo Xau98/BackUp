@@ -3,9 +3,12 @@ package com.android.backup.code;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.android.backup.activity.MainActivity;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,9 +54,10 @@ public class Code {
     }
 
     //"MyDifficultPassw"
-    public static void decrypt(Context context,String pathInput , String pathOutput) throws IOException, NoSuchAlgorithmException,
+    public static void decrypt(Context context, String pathInput , String pathOutput , ProgressBar progressBar, TextView statusload) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
-        FileInputStream fileInputStream = new FileInputStream(pathInput);
+        File file = new File(pathInput);
+        FileInputStream fileInputStream = new FileInputStream(file);
         FileOutputStream fileOutputStream = new FileOutputStream(pathOutput);
         SharedPreferences sharedPreferences = context.getSharedPreferences(MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
         String token = sharedPreferences.getString("token","//");
@@ -66,8 +70,16 @@ public class Code {
         CipherInputStream cis = new CipherInputStream(fileInputStream, cipher);
         int b;
         byte[] d = new byte[8];
+
+        long totalLength = file.length();
+        double lengthPerPercent = 100.0 / totalLength;
+        long readLength = 0;
         while ((b = cis.read(d)) != -1) {
             fileOutputStream.write(d, 0, b);
+            readLength +=b;
+            int percent = (int)Math.round(lengthPerPercent * readLength);
+            progressBar.setProgress(percent);
+            statusload.setText("Khôi phục "+percent+"%");
         }
         fileOutputStream.flush();
         fileOutputStream.close();

@@ -46,9 +46,10 @@ public class FileItem {
         size = getDirectorySizeLegacy(file);
     }
 
-    public FileItem(String name,String path){
+    public FileItem(String name,String path, long size){
         this.name = name;
         this.path = path;
+        this.size = size;
     }
 
 

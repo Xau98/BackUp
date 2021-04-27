@@ -33,7 +33,7 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
     public AsyncTaskUpload(Context context , FileItem fileItem, String  pathSave , Callback callback, ProgressBar progressBar , TextView status) {
         this.mFileItem = fileItem;
         mContext = context;
-        mProgressBar =progressBar;
+        mProgressBar = progressBar;
         mStatusLoad = status;
         mCallback = callback;
         mPathsave = pathSave;
@@ -52,7 +52,6 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         Log.d("Tiennvh", "doInBackground: ");
         try {
             Code.encrypt(mContext,handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+mConvertName+".txt");
-            //Code.decrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/Pictures.txt",handleFile.PATH_ROOT+"/CompressionFile/"+convertName+"2.zip");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {

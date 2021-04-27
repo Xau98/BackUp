@@ -135,33 +135,17 @@ public class FragmentBackuping extends Fragment {
         showTotalFileChecked.setText(handleFile.totalCapacity(mListFileChecked)+"");
         return view;
     }
-    FileOutputStream fos;
+
     @Override
-    public void onResume() {
-        super.onResume();
-        Callback mCallback1= new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.d("Tiennvh", "onFailure: "+e);
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    Log.d("Tiennvh", "onResponse: ");
-
-                    fos.write(response.body().bytes());
-                    fos.close();
-
-                }
-            }
-        };
+    public void onStart() {
+        super.onStart();
         if(!mIsRestore) {
             String namePathBackup = "false";
             AsyncTaskUpload myAsyncTaskCode;
             for (int i = 0; i < mListFileChecked.size(); i++) {
                 if (mJsonData != null)
                     namePathBackup = mJsonData;
+                Log.d("Tiennvh", "onStart: "+ namePathBackup);
                 myAsyncTaskCode = new AsyncTaskUpload(getContext(), mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
                 myAsyncTaskCode.execute();
             /*String convertName = ConvertNameFile.NameFolderToFile(mListFileChecked.get(i).getName().toString());
@@ -185,18 +169,8 @@ public class FragmentBackuping extends Fragment {
             handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip");*/
             }
         }else {
-
             AsyncTaskDownload asyncTaskDownload;
             for (int i = 0; i < mListFileChecked.size(); i++) {
-
-                /*try {
-                    fos = new FileOutputStream(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt" );
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }*/
-
-
                 asyncTaskDownload = new AsyncTaskDownload( getContext(),mListFileChecked.get(i) ,mProgressBar, mStatusLoad);
                 asyncTaskDownload.execute();
             }

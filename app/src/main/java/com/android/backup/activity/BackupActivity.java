@@ -96,11 +96,14 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                         if (!mJsonData.equals("False")) {
                             try {
                                 JSONObject Jobject = new JSONObject(mJsonData);
-                                JSONArray listData = Jobject.getJSONArray("list");
+                                JSONArray listData = Jobject.getJSONArray("list2");
                                 for(int i=0;i<listData.length();i++){
-                                    String name = (String) listData.get(i);
+                                    String ob =listData.get(i).toString();
+                                    JSONObject Jobject1 = new JSONObject(ob);
+                                    String name = Jobject1.getString("name");
                                     String name1= name.substring(0, name.length()-4);
-                                    FileItem fileItem = new FileItem(name1,itemListRestore.getPath()+"/"+name);
+                                    long size = Long.parseLong(Jobject1.getString("size"));
+                                    FileItem fileItem = new FileItem(name1,itemListRestore.getPath()+"/"+name,size );
                                     mListAllFile.add(fileItem);
                                     adapterListFile.notifyDataSetChanged();
                                 }
@@ -125,11 +128,9 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    Log.d("Tiennvh", "isSuccessful: ");
                     mJsonData = response.body().string();
                     if(!mJsonData.equals("True"))
                         mHandler.sendEmptyMessage(9);
-                    Log.d("Tiennvh", "isSuccessful: "+ mJsonData);
                 }
             }
         };

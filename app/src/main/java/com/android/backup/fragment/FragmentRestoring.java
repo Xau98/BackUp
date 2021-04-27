@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 
 import com.android.backup.Dialog;
 import com.android.backup.R;
+import com.android.backup.handleFile;
 
 public class FragmentRestoring extends Fragment {
 
@@ -33,14 +34,18 @@ public class FragmentRestoring extends Fragment {
         View view = inflater.inflate(R.layout.fragment_restoreing,container,false);
         mCapationRestore = view.findViewById(R.id.show_capacity_restore);
         mBTRestore = view.findViewById(R.id.bt_confirm_restore);
-        mCapationRestore.setText(mCapacity+"");
+        mCapationRestore.setText(Math.ceil((handleFile.KBToMB(mCapacity)) * 10) / 10   +" MB");
         mBTRestore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LayoutInflater inflater = getLayoutInflater();
-                String title ="Bạn có chắc muốn đồng bộ dữ liệu hay không ?";
-
-                dialog.showDialog(getContext(), inflater, title, true,0);
+                if(mCapacity!=0) {
+                    String title = "Bạn có chắc muốn đồng bộ dữ liệu hay không ?";
+                    dialog.showDialog(getContext(), inflater, title, true, 0);
+                }else {
+                    String title = "Bạn chưa chọn data dữ liệu để đồng bộ!";
+                    dialog.showDialog(getContext(), inflater, title, false, 0);
+                }
             }
         });
         return view;
