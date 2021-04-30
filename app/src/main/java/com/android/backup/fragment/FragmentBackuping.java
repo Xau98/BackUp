@@ -137,7 +137,7 @@ public class FragmentBackuping extends Fragment {
         };
 
 
-        if(!mIsRestore)
+
         showTotalFileChecked.setText(handleFile.totalCapacity(mListFileChecked)+"");
         return view;
     }

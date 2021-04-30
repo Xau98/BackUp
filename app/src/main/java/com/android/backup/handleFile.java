@@ -11,9 +11,11 @@ import com.github.tamir7.contacts.Contact;
 import com.github.tamir7.contacts.Contacts;
 import com.github.tamir7.contacts.PhoneNumber;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +46,39 @@ public class handleFile {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static void listFilesForFolder(final File folder) {
+        Log.d("Tiennvh", "listFilesForFolder: ");
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isDirectory()) {
+                listFilesForFolder(fileEntry);
+            } else {
+                String path =fileEntry.getPath();
+                int index = 35;
+                String pathfile  = handleFile.PATH_ROOT+path.substring(index,path.length() );
+                File file = new File(pathfile);
+                if(file.exists()){
+                    if(isSameFile(path, pathfile)){
+                        deleteFile(path);
+                    }else {
+                        File file1 = new File(path);
+                        File file2 = new File(pathfile);
+                        file2.getParentFile().mkdirs();
+                        file1.renameTo(file2);
+                        Log.d("Tiennvh", "remove file: "+file2.exists());
+                    }
+                }else {
+                        File file1 = new File(path);
+                        File file2 = new File(pathfile);
+                        file2.getParentFile().mkdirs();
+                        file1.renameTo(file2);
+                        Log.d("Tiennvh", "remove file"+file2.exists());
+                }
+
+            }
+        }
+
+    }
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static long totalCapacity(ArrayList<FileItem> list){
         long total =0;
@@ -126,6 +161,46 @@ public class handleFile {
             Log.d("Tiennvh", "getCallContact: "+ a.get(i).number);
 
         }
+    }
+
+    public void mixFileTwoFolder(String pathFolder1 , String pathFolder2){
+
+
+
+
+
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public static boolean isSameFile(String file1 , String file2){
+        try {
+        File f1 = new File(file1);// OUTFILE
+        File f2 = new File(file2);// INPUT
+
+        FileReader fR1 = new FileReader(f1);
+        FileReader fR2 = new FileReader(f2);
+
+        BufferedReader reader1 = new BufferedReader(fR1);
+        BufferedReader reader2 = new BufferedReader(fR2);
+
+        String line1 = null;
+        String line2 = null;
+        int flag = 1;
+        while ((flag == 1) && ((line1 = reader1.readLine()) != null)
+                && ((line2 = reader2.readLine()) != null)) {
+            if (!line1.equalsIgnoreCase(line2))
+                flag = 0;
+        }
+            reader1.close();
+            reader2.close();
+            if(flag==1)
+                return true;
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 /*
 *  private void saveData() {

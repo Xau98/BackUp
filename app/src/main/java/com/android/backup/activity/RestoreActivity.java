@@ -260,11 +260,17 @@ public class RestoreActivity extends AppCompatActivity implements AdapterListFil
                if(mListRestore.get(i).getID()==mPositionDelete){
                    SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
                    JSONObject jsonObject = new JSONObject();
+                   String path0 = mListRestore.get(i).getPath();
+
+                   String pathsave = path0.substring(0,path0.length()-20);
+                   String name = path0.substring(path0.length()-19);
+                   Log.d("Tiennvh", "onConfirm: "+pathsave+"***"+name);
                    try {
                        jsonObject.put("id", sharedPref.getString("id", null));
                        jsonObject.put("token", sharedPref.getString("token", null));
                        jsonObject.put("id_history",mPositionDelete);
-                       jsonObject.put("pathsave",mListRestore.get(i).getPath());
+                       jsonObject.put("pathsave",pathsave);
+                       jsonObject.put("namefolder", name);
                        String path = "removebackup";
                        RequestToServer.post(path, jsonObject, mCallback);
                    } catch (JSONException e) {

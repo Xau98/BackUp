@@ -343,7 +343,7 @@ public class MainActivity extends Activity {
         String password = mPassword.getText().toString();
         Log.d("Tiennvh", "onLoginAcoount: ");
         if (ConditionBackup.isNetworkConnected(this)) {
-/*
+
           if(username.equals("")||password.equals("")){  Log.d(TAG, "onLoginAcoount: ");
               Toast.makeText(this, "Nhập đầy đủ thông tin", LENGTH_SHORT).show();
           }else {
@@ -355,71 +355,21 @@ public class MainActivity extends Activity {
                   RequestToServer.post(path, jsonObject, mCallback);
               } catch (JSONException e) {
                   e.printStackTrace();
-              }
-            Intent intent = new Intent(getBaseContext(), HomePage.class);
+              }}/*
+           Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);*/
+            startActivity(intent);
+            */
 
-            File file1 = new File(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612.jpg");
-            File file2 = new File(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612_copy.jpg");
-           // boolean isTwoEqual = FileUtils.contentEquals(file1, file2);
-            sameContent(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612t.jpg",handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612_copy.jpg");
-        } else {
+
+          } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", LENGTH_SHORT).show();
         }
     }
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    boolean sameContent(String file1, String file2) throws IOException {
 
-        File f1 = new File(file1);// OUTFILE
-        File f2 = new File(file2);// INPUT
 
-        FileReader fR1 = new FileReader(f1);
-        FileReader fR2 = new FileReader(f2);
 
-        BufferedReader reader1 = new BufferedReader(fR1);
-        BufferedReader reader2 = new BufferedReader(fR2);
 
-        String line1 = null;
-        String line2 = null;
-        int flag = 1;
-        while ((flag == 1) && ((line1 = reader1.readLine()) != null)
-                && ((line2 = reader2.readLine()) != null)) {
-            if (!line1.equalsIgnoreCase(line2))
-                flag = 0;
-        }
-        reader1.close();
-        reader2.close();
-        System.out.println("Flag " + flag);
-        return true;
-    }
-
-  /*  private void copyFile() {
-        try {
-            File sd = Environment.getExternalStorageDirectory();
-            File data = Environment.getDataDirectory();
-
-            if (sd.canWrite()) {
-                String currentDBPath =
-                        this.getDatabasePath(DATABASE_NAME).getAbsolutePath();
-
-                String backupDBPath = "data.db";
-
-                File currentDB = new File(currentDBPath);
-                File backupDB = new File(sd, backupDBPath);
-
-                if (currentDB.exists()) {
-                    FileChannel src = new FileInputStream(currentDB).getChannel();
-                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                    dst.transferFrom(src, 0, src.size());
-                    src.close();
-                    dst.close();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }*/
 
     // Bkav TienNVh : login FB
     public void onLoginFacebook() {

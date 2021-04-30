@@ -12,6 +12,7 @@ import com.android.backup.RequestToServer;
 import com.android.backup.code.Code;
 import com.android.backup.handleFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +45,11 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         super.onPreExecute();
         Log.d("Tiennvh", "onPreExecute: ");
         mConvertName = ConvertNameFile.NameFolderToFile(mFileItem.getName().toString());
-        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+mFileItem.getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName+".zip");
+        String pathout= handleFile.PATH_ROOT+"/CompressionFile/";
+        File file =new File(pathout);
+        if(!file.exists())
+            file.getParentFile().mkdirs();
+        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+mFileItem.getName(),pathout+ mConvertName+".zip");
     }
 
     @Override

@@ -3,9 +3,12 @@ package com.android.backup.code;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.RequiresApi;
 
 import com.android.backup.CompressionFile;
 import com.android.backup.FileItem;
@@ -17,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -46,7 +50,10 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
+        String pathout= handleFile.PATH_ROOT+"/CompressionFile";
+        File file =new File(pathout);
+        if(!file.exists())
+          file.mkdirs();
     }
 
     @Override
@@ -86,6 +93,13 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
         return "Xong";
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @Override
+    protected void onPostExecute(String s) {
+        super.onPostExecute(s);
+        Log.d("Tiennvh", "onPostExecute: 123");
+
+    }
 
     class AsyncTaskdecrypt extends AsyncTask<Void,String , String>{
 
@@ -102,6 +116,8 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
             return "OKE";
         }
 
+
+        @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -111,6 +127,8 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
             CompressionFile.unZip(pathinput+".zip",pathinput);
             handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt");
             handleFile.deleteFile(pathinput+".zip");
+            final File folder = new File(handleFile.PATH_ROOT+"/CompressionFile");
+            handleFile.listFilesForFolder(folder);
         }
     }
 }
