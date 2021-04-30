@@ -1,5 +1,6 @@
 package com.android.backup.fragment;
 
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
+import com.android.backup.activity.MainActivity;
 import com.android.backup.code.AsyncTaskDownload;
 import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.Dialog;
@@ -30,6 +32,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import okhttp3.Call;
@@ -117,13 +121,15 @@ public class FragmentBackuping extends Fragment {
         callback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d("Tiennvh", "onFailure: "+e);
                 mCallbackBackup.onCallbackBackup("False");
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
+                if (/*response.isSuccessful()*/true) {
                     mJsonData = response.body().string();
+                    Log.d("Tiennvh", "onResponse: "+mJsonData);
                     mHandler.sendEmptyMessage(MSG_BACKUP);
                 }else
                     mCallbackBackup.onCallbackBackup("False");
@@ -136,15 +142,21 @@ public class FragmentBackuping extends Fragment {
         return view;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onStart() {
         super.onStart();
         if(!mIsRestore) {
             String namePathBackup = "false";
             AsyncTaskUpload myAsyncTaskCode;
+            SharedPreferences sharedPref =  getContext().getSharedPreferences(MainActivity.SHAREPREFENCE,   getContext().MODE_PRIVATE);
             for (int i = 0; i < mListFileChecked.size(); i++) {
-                if (mJsonData != null)
-                    namePathBackup = mJsonData;
+                if(i==0)
+                {
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+                    LocalDateTime now = LocalDateTime.now();
+                     namePathBackup = "Data"+dtf.format(now);
+                }
                 Log.d("Tiennvh", "onStart: "+ namePathBackup);
                 myAsyncTaskCode = new AsyncTaskUpload(getContext(), mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
                 myAsyncTaskCode.execute();

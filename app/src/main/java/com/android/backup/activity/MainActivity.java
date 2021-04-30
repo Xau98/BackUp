@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
@@ -20,7 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import com.android.backup.ConditionBackup;
 import com.android.backup.FileItem;
 import com.android.backup.Permission;
@@ -28,6 +28,7 @@ import com.android.backup.R;
 import com.android.backup.RequestToServer;
 import com.android.backup.ServiceBackup;
 import com.android.backup.account.Account;
+import com.android.backup.handleFile;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -50,12 +51,16 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -330,6 +335,7 @@ public class MainActivity extends Activity {
 
 
     // Bkav TienNVh : login Account
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void onLoginAcoount() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IOException {
 
         String username = mUsername.getText().toString();
@@ -337,7 +343,7 @@ public class MainActivity extends Activity {
         String password = mPassword.getText().toString();
         Log.d("Tiennvh", "onLoginAcoount: ");
         if (ConditionBackup.isNetworkConnected(this)) {
-
+/*
           if(username.equals("")||password.equals("")){  Log.d(TAG, "onLoginAcoount: ");
               Toast.makeText(this, "Nhập đầy đủ thông tin", LENGTH_SHORT).show();
           }else {
@@ -349,58 +355,45 @@ public class MainActivity extends Activity {
                   RequestToServer.post(path, jsonObject, mCallback);
               } catch (JSONException e) {
                   e.printStackTrace();
-              } /*
+              }
             Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            startActivity(intent);*/
 
-
-
-            Intent intent= new Intent(this, ServiceBackup.class);
-            startService(intent);*/
-          }
+            File file1 = new File(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612.jpg");
+            File file2 = new File(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612_copy.jpg");
+           // boolean isTwoEqual = FileUtils.contentEquals(file1, file2);
+            sameContent(handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612t.jpg",handleFile.PATH_ROOT+"/CompressionFile/Pictures/B612/B612_copy.jpg");
         } else {
             Toast.makeText(getBaseContext(), "Not Connect Internet", LENGTH_SHORT).show();
         }
     }
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    boolean sameContent(String file1, String file2) throws IOException {
 
+        File f1 = new File(file1);// OUTFILE
+        File f2 = new File(file2);// INPUT
 
-    public static boolean insertContact(ContentResolver contactAdder,
-                                        String firstName, String mobileNumber) {
-        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
-        ops.add(ContentProviderOperation
-                .newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
-                .build());
-        ops.add(ContentProviderOperation
-                .newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                .withValue(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                .withValue(
-                        ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-                        firstName).build());
-        ops.add(ContentProviderOperation
-                .newInsert(ContactsContract.Data.CONTENT_URI)
-                .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
-                .withValue(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER,
-                        mobileNumber)
-                .withValue(ContactsContract.CommonDataKinds.Phone.TYPE,
-                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE).build());
+        FileReader fR1 = new FileReader(f1);
+        FileReader fR2 = new FileReader(f2);
 
-        try {
-            contactAdder.applyBatch(ContactsContract.AUTHORITY, ops);
-        } catch (Exception e) {
-            return false;
+        BufferedReader reader1 = new BufferedReader(fR1);
+        BufferedReader reader2 = new BufferedReader(fR2);
+
+        String line1 = null;
+        String line2 = null;
+        int flag = 1;
+        while ((flag == 1) && ((line1 = reader1.readLine()) != null)
+                && ((line2 = reader2.readLine()) != null)) {
+            if (!line1.equalsIgnoreCase(line2))
+                flag = 0;
         }
-
+        reader1.close();
+        reader2.close();
+        System.out.println("Flag " + flag);
         return true;
     }
+
   /*  private void copyFile() {
         try {
             File sd = Environment.getExternalStorageDirectory();
