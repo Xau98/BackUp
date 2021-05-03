@@ -1,6 +1,7 @@
 package com.android.backup.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,6 +51,7 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FileItem fileItem = mList.get(position);
+        Log.d("Tiennvh", "onBindViewHolder: "+fileItem.getType());
         holder.nameFile.setText(fileItem.getName());
         holder.capacity.setText( Math.ceil((handleFile.KBToMB(fileItem.getSize())) * 10) / 10   +" MB");
         holder.checkBox.setOnClickListener(new View.OnClickListener() {
@@ -60,11 +62,16 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
                 }else {
                     mTotalCapacity -=  fileItem.getSize();
                 }
+                Log.d("Tiennvh", "onClick1: "+fileItem.getSize());
                 isChooseFolder.getTotalCapacity(fileItem , holder.checkBox.isChecked());
             }
         });
         if(isRestore){
             holder.statusBackup.setText("đang khôi phục ...");
+        }else {
+            if(fileItem.getType()==1){
+                holder.statusBackup.setText("đang xong");
+            }
         }
     }
 

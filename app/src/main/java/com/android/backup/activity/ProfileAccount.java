@@ -57,6 +57,9 @@ TextView mName, mEmail, mCreateDate, mID;
                         Toast.makeText(getBaseContext(), "Đăng xuất thất bại", Toast.LENGTH_SHORT).show();
 
                     }else {
+
+                        sharedPref.edit().clear().commit();
+
                         Intent intent = new Intent(getBaseContext(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);
@@ -68,7 +71,6 @@ TextView mName, mEmail, mCreateDate, mID;
             @Override
             public void onClick(View v) {
                 JSONObject jsonObject = new JSONObject();
-
                 try {
                     jsonObject.put("id", sharedPref.getString("id",null));
                     jsonObject.put("token", sharedPref.getString("token",null));

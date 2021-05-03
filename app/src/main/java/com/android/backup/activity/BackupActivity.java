@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.backup.code.AsyncTaskDownload;
+import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.code.Code;
 import com.android.backup.ItemListRestore;
 import com.android.backup.RequestToServer;
@@ -54,7 +56,8 @@ import okhttp3.Response;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder, FragmentBackuping.callbackBackup {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder,
+        FragmentBackuping.callbackBackup   {
     FragmentStatusBackUp fragmentStatusBackUp;
     FragmentRestoring mFragmentRestoring;
     FragmentBackuping fragmentBackuping;
@@ -74,6 +77,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     String mJsonData;
     AdapterItemFile adapterListFile;
     SharedPreferences mSharedPref;
+    public static final int MSG_LISTDATA = 9;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,7 +96,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             @Override
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
-                    case 9:
+                    case MSG_LISTDATA:
                         if (!mJsonData.equals("False")) {
                             try {
                                 JSONObject Jobject = new JSONObject(mJsonData);
@@ -130,7 +134,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                 if (response.isSuccessful()) {
                     mJsonData = response.body().string();
                     if(!mJsonData.equals("True"))
-                        mHandler.sendEmptyMessage(9);
+                        mHandler.sendEmptyMessage(MSG_LISTDATA);
                 }
             }
         };
@@ -207,7 +211,6 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             }
         });
 
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -220,66 +223,20 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     public void restoreFile(){
         //mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT);
     }
-    FileOutputStream fos;
-    String mPathfile;
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onConfirm(int type) {
         if(type == 0) {
             if (isRestore) {
-
                 fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, true);
+                fragmentBackuping.setTotalCapacity(mTotalCapacityChecked);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
-               /* Callback mCallback1= new Callback() {
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        Log.d("Tiennvh", "onFailure: "+e);
-                    }
 
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                        if (response.isSuccessful()) {
-                            Log.d("Tiennvh", "onResponse: ");
-                            fos.write(response.body().bytes());
-                            try {
-                                Log.d("Tiennvh", "onResponse: "+mPathfile);
-                                Code.decrypt(getApplicationContext(),mPathfile,handleFile.PATH_ROOT+"/CompressionFile");
-                                Code.decrypt(getApplicationContext(),handleFile.PATH_ROOT+"/CompressionFile/Pictures.txt",handleFile.PATH_ROOT+"/CompressionFile/"+mPathfile+"2.zip");
-                            } catch (NoSuchAlgorithmException e) {
-                                e.printStackTrace();
-                                Log.d("Tiennvh", "onResponse: "+e);
-                            } catch (NoSuchPaddingException e) {
-                                e.printStackTrace();
-                                Log.d("Tiennvh", "onResponse: "+e);
-                            } catch (InvalidKeyException e) {
-                                e.printStackTrace();
-                                Log.d("Tiennvh", "onResponse: "+e);
-                            }
-                            fos.close();
-                        }
-                    }
-                };
-                String id = mSharedPref.getString("id", null);
-                String token = mSharedPref.getString("token", null) ;
-                AsyncTaskDownload asyncTaskDownload;
-                for(int i=0;i<mListAllFile.size();i++){
-                    asyncTaskDownload = new AsyncTaskDownload(this,mListAllFile.get(i) );
-                    asyncTaskDownload.execute();
-                    JSONObject jsonObject = new JSONObject();
-                    try {
-                        jsonObject.put("id", id);
-                        jsonObject.put("token", token);
-                        jsonObject.put("path", mListAllFile.get(i).getPath()+"/"+ mListAllFile.get(i).getName()+".txt" );
-                        mPathfile = handleFile.PATH_ROOT+"/CompressionFile/"+ mListAllFile.get(i).getName()+".zip";
-                        fos = new FileOutputStream(handleFile.PATH_ROOT+"/CompressionFile/"+ mListAllFile.get(i).getName()+".txt" );
-                        RequestToServer.post("download", jsonObject,  mCallback1);
-                    } catch (FileNotFoundException | JSONException e) {
-                    e.printStackTrace();
-                }
-                }*/
             } else {
                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, false);
                 fragmentBackuping.setCallbackBackup(this);
@@ -294,10 +251,11 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
 
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void getTotalCapacity(FileItem fileItem , boolean ischecked) {
         if (isRestore) {
-            Log.d("Tiennvh", "getTotalCapacity: "+ fileItem.getName());
             if (handleFile.duplicateFileItem(mListFileChecked, fileItem) && ischecked) {
                 mListFileChecked.add(fileItem);
                 mTotalCapacityChecked += fileItem.getSize();
@@ -306,6 +264,8 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                 mListFileChecked = handleFile.removeFileItem(mListFileChecked, fileItem);
                 mTotalCapacityChecked -= fileItem.getSize();
             }
+            long t = handleFile.totalCapacity(mListFileChecked);
+            Log.d("Tiennvh", fileItem.getSize()+"getTotalCapacity: "+t);
             mFragmentRestoring = new FragmentRestoring(dialog, mTotalCapacityChecked);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.FagmentBackup, mFragmentRestoring).commit();
@@ -348,5 +308,15 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         }else{
             Log.d("Tiennvh", "onCallbackBackup: Not OKE");
         }
+    }
+
+    @Override
+    public void onFinishItem(int index) {
+        Log.d("Tiennvh", "onFinishItem: "+index);
+        Log.d("Tiennvh", "onFinishItem: "+ mListFileChecked.size()+"//"+mListAllFile.size());
+        mListFileChecked.get(index).setType(1);
+        AdapterItemFile adapterListFile =new AdapterItemFile(this, mListFileChecked, false ,false);
+         mRecyclerView.setAdapter(adapterListFile);
+
     }
 }

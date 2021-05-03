@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <application
         android:allowBackup="true"
@@ -60,6 +61,15 @@
             android:label="RegisterAcivity">
         </activity>
         <service android:name="com.android.backup.ServiceBackup"  android:exported="false"/>
+        <service android:name="com.android.backup.service.ServiceAutoBackup"  android:exported="false"/>
+        <receiver android:name=".service.ConditionAutoBackup" >
+            <intent-filter>
+
+                <action android:name="android.net.wifi.STATE_CHANGE" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".service.JobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
     </application>
 
 

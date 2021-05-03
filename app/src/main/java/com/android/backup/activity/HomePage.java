@@ -1,8 +1,12 @@
 package com.android.backup.activity;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,7 +16,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,10 +23,11 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.android.backup.service.ConditionAutoBackup;
 import com.android.backup.Dialog;
 import com.android.backup.R;
 import com.android.backup.RequestToServer;
-import com.android.backup.handleFile;
+import com.android.backup.service.ServiceAutoBackup;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -35,8 +39,6 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-import static android.widget.Toast.LENGTH_SHORT;
-
 public class HomePage extends AppCompatActivity implements Dialog.onConfirmBackup {
 TextView mTextViewEmail, mTextViewBackuplast;
 Button mListBackup, mSaveNow;
@@ -45,13 +47,15 @@ ConstraintLayout  mInfoAccount;
 Callback mCallback;
 Handler mHandler;
 String mJsonData;
+SharedPreferences mSharedPref;
+public  static  final String CHANNEL_ID= "channel_service";
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_page);
        mTextViewEmail= findViewById(R.id.email_account);
-        SharedPreferences sharedPref = getSharedPreferences( MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
-        String email = sharedPref.getString("email", "email");
+        mSharedPref= getSharedPreferences( MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
+        String email = mSharedPref.getString("email", "email");
         mTextViewEmail.setText(email);
         ActionBar actionBar = getSupportActionBar();
         actionBar.hide();
@@ -60,6 +64,8 @@ String mJsonData;
         mAutoBackup = findViewById(R.id.switch_auto_backup);
         mInfoAccount = findViewById(R.id.account_backup);
         mTextViewBackuplast = findViewById(R.id.textview_backuplast);
+        Dialog dialog = new Dialog();
+        dialog.setConfirmListener(this);
         mInfoAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -85,8 +91,9 @@ String mJsonData;
                 startActivity(intent);
             }
         });
-        Dialog dialog = new Dialog();
-        dialog.setConfirmListener(this);
+        Log.d("Tiennvh", "onCreate: "+mSharedPref.getBoolean("modeautobackup", false));
+        mAutoBackup.setChecked(mSharedPref.getBoolean("modeautobackup", false));
+
         mAutoBackup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,7 +136,7 @@ String mJsonData;
                 }
             }
         };
-
+        createChannelNotification();
     }
 
     @Override
@@ -149,9 +156,36 @@ String mJsonData;
 
     @Override
     public void onConfirm(int type) {
+        Log.d("Tiennvh", mAutoBackup.isChecked()+"onConfirm: "+type);
+        SharedPreferences.Editor editor = mSharedPref.edit();
+        editor.putBoolean("modeautobackup",mAutoBackup.isChecked());
+        editor.commit();
+        Intent intent = new Intent(this, ServiceAutoBackup.class);
+        if(mAutoBackup.isChecked()) {
+            startService(intent);
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+            intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+            ConditionAutoBackup myReceiver = new ConditionAutoBackup();
+            registerReceiver(myReceiver,intentFilter);
+
+        }else {
+            stopService(intent);
+        }
+
 
     }
 
+
+    private void createChannelNotification(){
+        NotificationChannel channel = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            channel = new NotificationChannel(CHANNEL_ID, "Channel service ", NotificationManager.IMPORTANCE_DEFAULT);
+         NotificationManager manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(channel);
+        }
+    }
     // Bkav TienNVh :init
 
 }

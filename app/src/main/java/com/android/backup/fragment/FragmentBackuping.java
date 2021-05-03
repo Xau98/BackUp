@@ -52,6 +52,7 @@ public class FragmentBackuping extends Fragment {
     String mJsonData ;
     Handler mHandler;
     int mCountUpload = 0;
+    long mTotalCapacity =0;
     boolean mIsRestore = false;
     public FragmentBackuping(ArrayList<FileItem> listFileChecked, Dialog dialog, boolean isRestore) {
         mListFileChecked = listFileChecked;
@@ -59,6 +60,9 @@ public class FragmentBackuping extends Fragment {
         mIsRestore = isRestore;
     }
 
+    public  void setTotalCapacity(long totalCapacity){
+        mTotalCapacity = totalCapacity;
+    }
     public void setCallbackBackup(callbackBackup callbackBackup){
         mCallbackBackup = callbackBackup;
     }
@@ -123,6 +127,7 @@ public class FragmentBackuping extends Fragment {
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Log.d("Tiennvh", "onFailure: "+e);
                 mCallbackBackup.onCallbackBackup("False");
+
             }
 
             @Override
@@ -136,10 +141,19 @@ public class FragmentBackuping extends Fragment {
             }
         };
 
-
-
-        showTotalFileChecked.setText(handleFile.totalCapacity(mListFileChecked)+"");
+        Log.d("Tiennvh", "onCreateView: "+handleFile.totalCapacity(mListFileChecked)+"");
+        float capacity = 0;
+        if(!mIsRestore)
+            capacity = handleFile.KBToMB(handleFile.totalCapacity(mListFileChecked));
+        else
+            capacity = handleFile.KBToMB(mTotalCapacity);
+        showTotalFileChecked.setText((Math.ceil(capacity* 10) / 10)+"MB");
         return view;
+    }
+    AsyncTaskUpload myAsyncTaskCode;
+
+    public AsyncTaskUpload getMyAsyncTaskCode() {
+        return myAsyncTaskCode;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -148,7 +162,18 @@ public class FragmentBackuping extends Fragment {
         super.onStart();
         if(!mIsRestore) {
             String namePathBackup = "false";
-            AsyncTaskUpload myAsyncTaskCode;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (int i=0;i<5;i++){
+
+
+                        Log.d("Tiennvh", "run: "+i);
+                    }
+                    Log.d("Tiennvh", "run: ok");
+                    mCallbackBackup.onFinishItem(0);
+                }
+            }).start();
             SharedPreferences sharedPref =  getContext().getSharedPreferences(MainActivity.SHAREPREFENCE,   getContext().MODE_PRIVATE);
             for (int i = 0; i < mListFileChecked.size(); i++) {
                 if(i==0)
@@ -158,28 +183,13 @@ public class FragmentBackuping extends Fragment {
                      namePathBackup = "Data"+dtf.format(now);
                 }
                 Log.d("Tiennvh", "onStart: "+ namePathBackup);
+
                 myAsyncTaskCode = new AsyncTaskUpload(getContext(), mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
+
                 myAsyncTaskCode.execute();
-            /*String convertName = ConvertNameFile.NameFolderToFile(mListFileChecked.get(i).getName().toString());
-            CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+ mListFileChecked.get(i).getName(),handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip");
-            try {
-               Code.encrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip",handleFile.PATH_ROOT+"/CompressionFile/"+convertName+".txt");
-                //Code.decrypt(getContext(),handleFile.PATH_ROOT+"/CompressionFile/Pictures.txt",handleFile.PATH_ROOT+"/CompressionFile/"+convertName+"2.zip");
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (NoSuchPaddingException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
+
             }
 
-
-            String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ convertName +".txt";
-            RequestToServer.upload(getContext(),namePathBackup ,"uploadfile",namePath, callback, mProgressBar, mStatusLoad );
-            handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ convertName+".zip");*/
-            }
         }else {
             AsyncTaskDownload asyncTaskDownload;
             for (int i = 0; i < mListFileChecked.size(); i++) {
@@ -191,5 +201,6 @@ public class FragmentBackuping extends Fragment {
 
    public interface  callbackBackup{
         void onCallbackBackup(String isSuccessful);
+        void onFinishItem(int index);
     }
 }

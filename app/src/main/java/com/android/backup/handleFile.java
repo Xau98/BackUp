@@ -1,17 +1,21 @@
 package com.android.backup;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.android.backup.activity.MainActivity;
 import com.github.tamir7.contacts.Contact;
 import com.github.tamir7.contacts.Contacts;
 import com.github.tamir7.contacts.PhoneNumber;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,11 +51,11 @@ public class handleFile {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static void listFilesForFolder(final File folder) {
+    public static void listFilesForFolder(final File folder , Context context) {
         Log.d("Tiennvh", "listFilesForFolder: ");
         for (final File fileEntry : folder.listFiles()) {
             if (fileEntry.isDirectory()) {
-                listFilesForFolder(fileEntry);
+                listFilesForFolder(fileEntry, context);
             } else {
                 String path =fileEntry.getPath();
                 int index = 35;
@@ -66,6 +70,7 @@ public class handleFile {
                         file2.getParentFile().mkdirs();
                         file1.renameTo(file2);
                         Log.d("Tiennvh", "remove file: "+file2.exists());
+                        writeHistoryDownloadFile(file2.getPath(), context);
                     }
                 }else {
                         File file1 = new File(path);
@@ -73,18 +78,38 @@ public class handleFile {
                         file2.getParentFile().mkdirs();
                         file1.renameTo(file2);
                         Log.d("Tiennvh", "remove file"+file2.exists());
+                        writeHistoryDownloadFile(file2.getPath(), context);
                 }
 
             }
         }
 
     }
+
+    public static void writeHistoryDownloadFile(String data , Context context){
+        SharedPreferences sharedPref =  context.getSharedPreferences(MainActivity.SHAREPREFENCE,  context.MODE_PRIVATE);
+        try {
+            //Bước 1: Tạo đối tượng luồng và liên kết nguồn dữ liệu
+            FileOutputStream fos = new FileOutputStream(PATH_FOLDER+"/"+ sharedPref.getString("id_devices", null)+".txt");
+            DataOutputStream dos = new DataOutputStream(fos);
+            //Bước 2: Ghi dữ liệu
+            dos.writeChars(data);
+            //Bước 3: Đóng luồng
+            fos.close();
+            dos.close();
+            System.out.println("Done!");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     public static long totalCapacity(ArrayList<FileItem> list){
         long total =0;
         for(int i=0;i<list.size();i++){
              FileItem file = new FileItem(list.get(i).getPath(),0);
-             total = file.getSize();
+             total += file.getSize();
         }
         return total;
     }

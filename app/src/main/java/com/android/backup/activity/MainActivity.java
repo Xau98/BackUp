@@ -16,6 +16,7 @@ import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +27,7 @@ import com.android.backup.FileItem;
 import com.android.backup.Permission;
 import com.android.backup.R;
 import com.android.backup.RequestToServer;
-import com.android.backup.ServiceBackup;
+
 import com.android.backup.account.Account;
 import com.android.backup.handleFile;
 import com.facebook.AccessToken;
@@ -155,6 +156,7 @@ public class MainActivity extends Activity {
             }
         });
         bt_login.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
 
@@ -185,7 +187,7 @@ public class MainActivity extends Activity {
                 onLoginFacebook();
             }
         });
-
+        String idDevices = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         mHandler = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
@@ -194,7 +196,6 @@ public class MainActivity extends Activity {
                         if (!mJsonData.equals("False")) {
                             try {
                                 JSONObject Jobject = new JSONObject(mJsonData);
-                                Log.d("Tiennvh", "handleMessage: " + Jobject.getString("email"));
                                 SharedPreferences sharedPref = getSharedPreferences(SHAREPREFENCE, MODE_PRIVATE);
                                 SharedPreferences.Editor editor = sharedPref.edit();
                                 editor.putString("id", Jobject.getInt("id") + "");
@@ -202,6 +203,7 @@ public class MainActivity extends Activity {
                                 editor.putString("token", Jobject.getString("token"));
                                 editor.putString("email", Jobject.getString("email"));
                                 editor.putString("date_create", Jobject.getString("date_create"));
+                                editor.putString("id_devices", idDevices);
                                 editor.commit();
                                 Intent intent = new Intent(getBaseContext(), HomePage.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -359,7 +361,7 @@ public class MainActivity extends Activity {
            Intent intent = new Intent(getBaseContext(), HomePage.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-            */
+*/
 
 
           } else {

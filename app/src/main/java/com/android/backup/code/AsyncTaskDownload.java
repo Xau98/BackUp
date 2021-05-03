@@ -128,7 +128,7 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
             handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+namFile+".txt");
             handleFile.deleteFile(pathinput+".zip");
             final File folder = new File(handleFile.PATH_ROOT+"/CompressionFile");
-            handleFile.listFilesForFolder(folder);
+            handleFile.listFilesForFolder(folder, mContext);
         }
     }
 }

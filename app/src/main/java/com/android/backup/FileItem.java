@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileItem {
-  //  private String ID;
+   private String ID;
 
     private String name;
 
@@ -28,13 +28,6 @@ public class FileItem {
 
     private long size;
 
-    public FileItem(  String name, int type, String path, long date, long size) {
-        this.name = name;
-        this.type = type;
-        this.path = path;
-        this.date = date;
-        this.size = size;
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public FileItem(String path , int type){
@@ -89,6 +82,23 @@ public class FileItem {
         return size;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
+    public void setType(int type) {
+        this.type = type;
+    }
 
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public void setDate(long date) {
+        this.date = date;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
 }
