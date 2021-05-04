@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import com.android.backup.R;
 import com.android.backup.RequestToServer;
 import com.android.backup.activity.MainActivity;
+import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
@@ -57,9 +58,10 @@ TextView mName, mEmail, mCreateDate, mID;
                         Toast.makeText(getBaseContext(), "Đăng xuất thất bại", Toast.LENGTH_SHORT).show();
 
                     }else {
-
+                        String path = handleFile.PATH_ROOT+"/"+ sharedPref.getString("id_devices", null)+".txt";
+                        handleFile.readHistoryDownloadFile(path);
+                        //Bkav TienNVh :Xoa SharePre
                         sharedPref.edit().clear().commit();
-
                         Intent intent = new Intent(getBaseContext(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);

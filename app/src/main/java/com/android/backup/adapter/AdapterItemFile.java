@@ -70,7 +70,7 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
             holder.statusBackup.setText("đang khôi phục ...");
         }else {
             if(fileItem.getType()==1){
-                holder.statusBackup.setText("đang xong");
+                holder.statusBackup.setText("đã xong");
             }
         }
     }

@@ -3,6 +3,7 @@ package com.android.backup.activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -14,12 +15,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -39,7 +44,7 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class HomePage extends AppCompatActivity implements Dialog.onConfirmBackup {
+public class HomePage extends AppCompatActivity {
 TextView mTextViewEmail, mTextViewBackuplast;
 Button mListBackup, mSaveNow;
 Switch mAutoBackup;
@@ -48,6 +53,7 @@ Callback mCallback;
 Handler mHandler;
 String mJsonData;
 SharedPreferences mSharedPref;
+long mScheduleTime = 0;
 public  static  final String CHANNEL_ID= "channel_service";
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,8 +70,6 @@ public  static  final String CHANNEL_ID= "channel_service";
         mAutoBackup = findViewById(R.id.switch_auto_backup);
         mInfoAccount = findViewById(R.id.account_backup);
         mTextViewBackuplast = findViewById(R.id.textview_backuplast);
-        Dialog dialog = new Dialog();
-        dialog.setConfirmListener(this);
         mInfoAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -103,7 +107,7 @@ public  static  final String CHANNEL_ID= "channel_service";
                     title ="Hãy xác nhận bạn muốn bắt đầu quá trình sao lưu dữ liệu tự động";
                 else
                     title ="Hãy xác nhận bạn tắt quá trình sao lưu dữ liệu tự động";
-                dialog.showDialog(HomePage.this,inflater , title, true,0);
+                showDialog(HomePage.this,inflater , title , mAutoBackup.isChecked());
             }
         });
 
@@ -154,6 +158,66 @@ public  static  final String CHANNEL_ID= "channel_service";
         }
     }
 
+    public void showDialog(Context context, LayoutInflater inflater, String title , boolean statusSwtich ){
+        View alertLayout = inflater.inflate(R.layout.dialog_confirm, null);
+        TextView tile = alertLayout.findViewById(R.id.title_dialog);
+        LinearLayout linearLayout = alertLayout.findViewById(R.id.schedule_auto_backup);
+        RadioButton radioBT_7Day = alertLayout.findViewById(R.id.radio_7day);
+        RadioButton radioBT_Everyday = alertLayout.findViewById(R.id.radio_everyday);
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        alert.setView(alertLayout);
+        alert.setCancelable(false);
+        tile.setText(title);
+
+        if(radioBT_7Day.isChecked()){
+            //mScheduleTime = 7*24*60*1000;
+            mScheduleTime = 12*1000;
+        }
+
+        if(radioBT_Everyday.isChecked()){
+           // mScheduleTime = 1*24*60*1000;
+            mScheduleTime = 6*1000;
+        }
+
+        if(!statusSwtich){
+            linearLayout.setVisibility(View.GONE);
+        }else {
+            linearLayout.setVisibility(View.VISIBLE);
+        }
+        alert.setNegativeButton("Hủy", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Toast.makeText(context, "Cancel clicked", Toast.LENGTH_SHORT).show();
+                if(statusSwtich)
+                      mAutoBackup.setChecked(false);
+                else
+                      mAutoBackup.setChecked(true);
+            }
+        });
+            alert.setPositiveButton("Xác Nhận", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // code for matching password
+                    SharedPreferences.Editor editor = mSharedPref.edit();
+                    editor.putBoolean("modeautobackup",mAutoBackup.isChecked());
+                    editor.commit();
+                    Intent intent = new Intent(context, ServiceAutoBackup.class);
+                    if(statusSwtich){
+                        startService(intent);
+                        IntentFilter intentFilter = new IntentFilter();
+                        intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+                        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+                        intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
+                        ConditionAutoBackup myReceiver = new ConditionAutoBackup(mScheduleTime);
+                        registerReceiver(myReceiver,intentFilter);
+                    }else {
+                        stopService(intent);
+                    }
+                }
+            });
+        alert.show();
+    }
+/*
     @Override
     public void onConfirm(int type) {
         Log.d("Tiennvh", mAutoBackup.isChecked()+"onConfirm: "+type);
@@ -175,7 +239,7 @@ public  static  final String CHANNEL_ID= "channel_service";
         }
 
 
-    }
+    }*/
 
 
     private void createChannelNotification(){

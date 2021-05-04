@@ -19,7 +19,7 @@ public class Dialog {
 
     }
 
-    public  void showDialog(Context context, LayoutInflater inflater, String title , boolean showconfirm ,int type ){
+    public void showDialog(Context context, LayoutInflater inflater, String title , boolean showconfirm ,int type ){
         View alertLayout = inflater.inflate(R.layout.dialog_confirm, null);
         AlertDialog.Builder alert = new AlertDialog.Builder(context);
         alert.setView(alertLayout);
@@ -46,7 +46,7 @@ public class Dialog {
     }
 
 
- public   interface  onConfirmBackup{
+ public interface  onConfirmBackup{
         void onConfirm(int type);
     }
 }

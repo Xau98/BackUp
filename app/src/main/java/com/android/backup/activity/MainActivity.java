@@ -21,6 +21,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.android.backup.ConditionBackup;
 import com.android.backup.FileItem;
@@ -87,7 +88,6 @@ public class MainActivity extends Activity {
     public static final int RC_SIGN_IN = 1;
     public static final int CODE_PERMISSION = 2405;
     public static final String TAG = "TienNVh";
-    public static final String SHARED_PRE_TOKEN = "com.android.backup.token";
     public static final String SHAREPREFENCE = "SHAREPREFENCE_ACCOUNT";
     public static final String ID_CLIENT_GG = "797362158064-h1cjks1abj7vqphiu6rc0429jsd3puet.apps.googleusercontent.com";
     public static final String TOKENT_CLIENT = "tokent_client";
@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
     Handler mHandler;
     String mJsonData;
     Button bt_login, mBTRegister;
-
+    ProgressBar mProgressBar;
     SignInButton loginGG;//Google
     LoginButton loginFB;//Facebook
     EditText mUsername, mPassword;
@@ -115,10 +115,9 @@ public class MainActivity extends Activity {
                 mAutheAC = decryptToken(tokent, "GG" + account.getId());
             }
         }
-
         setContentView(R.layout.activity_main);
 
-
+        mProgressBar = findViewById(R.id.progressBar);
         bt_login = findViewById(R.id.bt_loginAC);
         loginGG = findViewById(R.id.loginGG_button);
         loginGG.setSize(SignInButton.SIZE_STANDARD);
@@ -127,7 +126,7 @@ public class MainActivity extends Activity {
         mPassword = findViewById(R.id.password);
         mBTRegister = findViewById(R.id.bt_register);
         //========================Khoi tao============================================
-        mPreferences = getSharedPreferences(SHARED_PRE_TOKEN, MODE_PRIVATE);
+        mPreferences = getSharedPreferences(SHAREPREFENCE, MODE_PRIVATE);
         // Bkav TienNVh : Cấp quyền
         Permission permission = new Permission(this,this);
 
@@ -146,6 +145,7 @@ public class MainActivity extends Activity {
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         Contacts.initialize(this);
+
         //========================Login Account=========================================
         mBTRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -188,6 +188,7 @@ public class MainActivity extends Activity {
             }
         });
         String idDevices = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        Log.d("Tiennvh", "onCreate: ID devices "+ idDevices);
         mHandler = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
@@ -196,8 +197,7 @@ public class MainActivity extends Activity {
                         if (!mJsonData.equals("False")) {
                             try {
                                 JSONObject Jobject = new JSONObject(mJsonData);
-                                SharedPreferences sharedPref = getSharedPreferences(SHAREPREFENCE, MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPref.edit();
+                                SharedPreferences.Editor editor = mPreferences.edit();
                                 editor.putString("id", Jobject.getInt("id") + "");
                                 editor.putString("name", Jobject.getString("name"));
                                 editor.putString("token", Jobject.getString("token"));
@@ -226,6 +226,7 @@ public class MainActivity extends Activity {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
+                mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -238,6 +239,21 @@ public class MainActivity extends Activity {
             }
         };
 
+        String id_account = mPreferences.getString("id", null);
+        String token = mPreferences.getString("token", null);
+        if(id_account != null && token != null){
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("id", id_account);
+                jsonObject.put("token", token);
+                String path = "logintoken";
+                RequestToServer.post(path, jsonObject, mCallback);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }else {
+            mProgressBar.setVisibility(View.GONE);
+        }
 
     }
 

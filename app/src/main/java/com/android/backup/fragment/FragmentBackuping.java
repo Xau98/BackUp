@@ -112,10 +112,12 @@ public class FragmentBackuping extends Fragment {
                              mCallbackBackup.onCallbackBackup(mJsonData);
                             mStopBackup.setVisibility(View.INVISIBLE);
                             mPauseBackup.setVisibility(View.INVISIBLE);
+                            mCallbackBackup.onFinishItem(0);
 //                            for (int i=0;i<mListFileChecked.size();i++){
 //                                handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
 //                            }
-                            mListFileChecked.clear();
+                            //Bkav TienNVh :comment
+                           // mListFileChecked.clear();
                             mCountUpload++;
                         }
                 }
@@ -132,7 +134,7 @@ public class FragmentBackuping extends Fragment {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (/*response.isSuccessful()*/true) {
+                if (response.isSuccessful()) {
                     mJsonData = response.body().string();
                     Log.d("Tiennvh", "onResponse: "+mJsonData);
                     mHandler.sendEmptyMessage(MSG_BACKUP);
@@ -162,19 +164,6 @@ public class FragmentBackuping extends Fragment {
         super.onStart();
         if(!mIsRestore) {
             String namePathBackup = "false";
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    for (int i=0;i<5;i++){
-
-
-                        Log.d("Tiennvh", "run: "+i);
-                    }
-                    Log.d("Tiennvh", "run: ok");
-                    mCallbackBackup.onFinishItem(0);
-                }
-            }).start();
-            SharedPreferences sharedPref =  getContext().getSharedPreferences(MainActivity.SHAREPREFENCE,   getContext().MODE_PRIVATE);
             for (int i = 0; i < mListFileChecked.size(); i++) {
                 if(i==0)
                 {

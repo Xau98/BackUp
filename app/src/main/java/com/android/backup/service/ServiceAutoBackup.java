@@ -5,6 +5,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -34,12 +35,13 @@ public class ServiceAutoBackup extends Service {
     }
 
     private  void  senNotification(){
-
-
+        RemoteViews notificationLayout =
+                new RemoteViews(getPackageName(), R.layout.notification_backup);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Title notification service")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentText("Thong bao bat service auto backup")
+                .setCustomContentView(notificationLayout)
                 . build();
         startForeground(1, notification);
     }
