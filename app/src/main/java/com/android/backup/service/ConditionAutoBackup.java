@@ -6,14 +6,11 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
-import com.android.backup.ConditionBackup;
 import com.android.backup.FileItem;
 import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.handleFile;
@@ -42,6 +39,8 @@ public class ConditionAutoBackup extends BroadcastReceiver {
     public ConditionAutoBackup(long scheduleTime) {
         mScheduleTime = scheduleTime;
     }
+    public ConditionAutoBackup() {
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -49,6 +48,9 @@ public class ConditionAutoBackup extends BroadcastReceiver {
         if(intent.getAction()!=null)
         {
             if(ConditionBackup.isCharging(context)&& ConditionBackup.isNetworkConnected(context)&& ConditionBackup.isScreenLock(context)){
+
+                 callbackConditionBackup.onCallback();
+
                 ComponentName componentName = new ComponentName(getApplicationContext(), JobService.class);
                 JobInfo info = new JobInfo.Builder(123, componentName)
                         .setRequiresCharging(true)
@@ -88,28 +90,23 @@ public class ConditionAutoBackup extends BroadcastReceiver {
                             LocalDateTime now = LocalDateTime.now();
                             namePathBackup = "Data"+dtf.format(now);
                         }
-                       // myAsyncTaskCode = new AsyncTaskUpload(mContext, mListAllFile.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
-
-                       // myAsyncTaskCode.execute();
+                         //myAsyncTaskCode = new AsyncTaskUpload(mContext, mListAllFile.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
+                        // myAsyncTaskCode.execute();
                     }
 
                 }else {
                     Log.d("Tiennvh", "onClick: not OKE ");
                 }
+
         }
         }
 
-//        if(intent.getExtras() != null)
-//        {
-//
-//            NetworkInfo ni = (NetworkInfo) intent.getExtras().get(ConnectivityManager.EXTRA_NETWORK_INFO);
-//            if(ni != null && ni.getState() == NetworkInfo.State.CONNECTED)
-//            {
-//                Log.i("app", "Network " + ni.getTypeName() + " connected");
-//            }
-//        }
-//
-
-
+    }
+    callbackConditionBackup callbackConditionBackup;
+    public void setCallbackConditionBackup(callbackConditionBackup callbackConditionBackup){
+        this.callbackConditionBackup =callbackConditionBackup;
+    }
+    public interface callbackConditionBackup{
+        void onCallback();
     }
 }

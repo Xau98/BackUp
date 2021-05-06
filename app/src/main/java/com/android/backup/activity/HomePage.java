@@ -209,6 +209,12 @@ public  static  final String CHANNEL_ID= "channel_service";
                         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
                         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
                         ConditionAutoBackup myReceiver = new ConditionAutoBackup(mScheduleTime);
+                      /* myReceiver.setCallbackConditionBackup(new ConditionAutoBackup.callbackConditionBackup() {
+                            @Override
+                            public void onCallback() {
+                                Log.d("Tiennvh", "onCallback: ");
+                            }
+                        });*/
                         registerReceiver(myReceiver,intentFilter);
                     }else {
                         stopService(intent);
