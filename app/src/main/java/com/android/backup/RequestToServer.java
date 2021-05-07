@@ -72,11 +72,14 @@ public class RequestToServer {
                 if (percentage >= 0) {
                     Log.d("progress ", percentage + "");
                     int percen = Math.round(percentage);
-                    status.setText("Sao lưu "+percen+"%");
-                    progressBar.setProgress(percen);
+                    if(progressBar!=null&&status!=null) {
+                        status.setText("Sao lưu " + percen + "%");
+                        progressBar.setProgress(percen);
+                    }
                 } else {
                     //Something went wrong
-                    status.setText("sao lưu lỗi ...");
+                    if(progressBar!=null&&status!=null)
+                     status.setText("sao lưu lỗi ...");
                     Log.d("No progress ", 0 + "");
                 }
             }

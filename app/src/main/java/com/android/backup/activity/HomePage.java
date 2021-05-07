@@ -2,14 +2,18 @@ package com.android.backup.activity;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,6 +27,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -59,7 +64,7 @@ public  static  final String CHANNEL_ID= "channel_service";
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_page);
-       mTextViewEmail= findViewById(R.id.email_account);
+        mTextViewEmail= findViewById(R.id.email_account);
         mSharedPref= getSharedPreferences( MainActivity.SHAREPREFENCE, Context.MODE_PRIVATE);
         String email = mSharedPref.getString("email", "email");
         mTextViewEmail.setText(email);
@@ -157,6 +162,39 @@ public  static  final String CHANNEL_ID= "channel_service";
             e.printStackTrace();
         }
     }
+    ServiceAutoBackup mServiceBackup;
+    boolean mBound = false;
+    public ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            ServiceAutoBackup.BackupBinder binder = (ServiceAutoBackup.BackupBinder) iBinder;
+            mServiceBackup = binder.getMusicBinder();
+            Log.d("Tiennvh", "onServiceConnected: "+mServiceBackup);
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBound = false;
+            Log.d("Tiennvh", "onServiceDisconnected: "+ componentName);
+//            SharedPreferences.Editor editor = mSharedPreferences.edit();
+//            editor.putInt("play", mPosition);
+//            editor.putString("nameSong",mNameSong.getText()+"");
+//            editor.apply();
+        }
+    };
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+    }
+    private void startForgoundService() {
+        // Bind to LocalService
+        Intent intent = new Intent(this, ServiceAutoBackup.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        startForegroundService(intent);
+    }
 
     public void showDialog(Context context, LayoutInflater inflater, String title , boolean statusSwtich ){
         View alertLayout = inflater.inflate(R.layout.dialog_confirm, null);
@@ -201,23 +239,23 @@ public  static  final String CHANNEL_ID= "channel_service";
                     SharedPreferences.Editor editor = mSharedPref.edit();
                     editor.putBoolean("modeautobackup",mAutoBackup.isChecked());
                     editor.commit();
-                    Intent intent = new Intent(context, ServiceAutoBackup.class);
                     if(statusSwtich){
-                        startService(intent);
                         IntentFilter intentFilter = new IntentFilter();
                         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
                         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
                         intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
                         ConditionAutoBackup myReceiver = new ConditionAutoBackup(mScheduleTime);
-                      /* myReceiver.setCallbackConditionBackup(new ConditionAutoBackup.callbackConditionBackup() {
+                        startForgoundService();
+                        myReceiver.setCallbackConditionBackup(new ConditionAutoBackup.callbackConditionBackup() {
                             @Override
                             public void onCallback() {
-                                Log.d("Tiennvh", "onCallback: ");
+                                if(mBound)
+                                    mServiceBackup.updateUI();
                             }
-                        });*/
+                        });
                         registerReceiver(myReceiver,intentFilter);
                     }else {
-                        stopService(intent);
+                        //stopService(intent);
                     }
                 }
             });
@@ -249,13 +287,20 @@ public  static  final String CHANNEL_ID= "channel_service";
 
 
     private void createChannelNotification(){
-        NotificationChannel channel = null;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            channel = new NotificationChannel(CHANNEL_ID, "Channel service ", NotificationManager.IMPORTANCE_DEFAULT);
-         NotificationManager manager = getSystemService(NotificationManager.class);
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Channel service ", NotificationManager.IMPORTANCE_LOW);
+        NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(channel);
-        }
     }
+
+//    @Override
+//    protected void onDestroy() {
+//        super.onDestroy();
+//        if (mBound) {
+//            unbindService(mServiceConnection);
+//            mBound = false;
+//        }
+//    }
+
     // Bkav TienNVh :init
 
 }

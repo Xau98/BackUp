@@ -132,9 +132,6 @@ public class handleFile {
         }
     }
 
-
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public static long totalCapacity(ArrayList<FileItem> list){
         long total =0;
         for(int i=0;i<list.size();i++){

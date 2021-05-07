@@ -49,7 +49,8 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         File file =new File(pathout);
         if(!file.exists())
             file.getParentFile().mkdirs();
-        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+mFileItem.getName(),pathout+ mConvertName+".zip");
+        //Bkav TienNVh :add /Album
+        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/Album/"+mFileItem.getName(),pathout+ mConvertName+".zip");
     }
 
     @Override

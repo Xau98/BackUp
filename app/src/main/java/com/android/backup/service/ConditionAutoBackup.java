@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
+import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -42,13 +44,15 @@ public class ConditionAutoBackup extends BroadcastReceiver {
     public ConditionAutoBackup() {
     }
 
+    boolean statusBack = false;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent.getAction()!=null)
         {
-            if(ConditionBackup.isCharging(context)&& ConditionBackup.isNetworkConnected(context)&& ConditionBackup.isScreenLock(context)){
-
+            Log.d("Tiennvh", ConditionBackup.isCharging(context)+"//"+ConditionBackup.isNetworkConnected(context)+"//"+ConditionBackup.isScreenLock(context)+"onReceive: "+statusBack);
+            if(/*ConditionBackup.isCharging(context)&&*/ ConditionBackup.isNetworkConnected(context)&& ConditionBackup.isScreenLock(context) && !statusBack){
+                 statusBack = true;
                  callbackConditionBackup.onCallback();
 
                 ComponentName componentName = new ComponentName(getApplicationContext(), JobService.class);
@@ -69,7 +73,7 @@ public class ConditionAutoBackup extends BroadcastReceiver {
                         @Override
                         public void onFailure(@NotNull Call call, @NotNull IOException e) {
                             Log.d("Tiennvh", "onFailure: "+e);
-                          //  mCallbackBackup.onCallbackBackup("False");
+                          //mCallbackBackup.onCallbackBackup("False");
 
                         }
 
@@ -91,7 +95,7 @@ public class ConditionAutoBackup extends BroadcastReceiver {
                             namePathBackup = "Data"+dtf.format(now);
                         }
                          //myAsyncTaskCode = new AsyncTaskUpload(mContext, mListAllFile.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
-                        // myAsyncTaskCode.execute();
+                        //myAsyncTaskCode.execute();
                     }
 
                 }else {
