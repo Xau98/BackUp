@@ -1,9 +1,14 @@
 package com.android.backup.activity;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
@@ -35,6 +40,7 @@ import com.android.backup.fragment.FragmentRestoring;
 import com.android.backup.fragment.FragmentStatusBackUp;
 import com.android.backup.R;
 import com.android.backup.handleFile;
+import com.android.backup.service.ServiceAutoBackup;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
@@ -78,7 +84,24 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     AdapterItemFile adapterListFile;
     SharedPreferences mSharedPref;
     public static final int MSG_LISTDATA = 9;
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    ServiceAutoBackup mServiceBackup;
+    boolean mBound = false;
+    public ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            ServiceAutoBackup.BackupBinder binder = (ServiceAutoBackup.BackupBinder) iBinder;
+            mServiceBackup = binder.getMusicBinder();
+            Log.d("Tiennvh", "onServiceConnected: "+mServiceBackup);
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBound = false;
+            Log.d("Tiennvh", "onServiceDisconnected: "+ componentName);
+        }
+    };
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +115,9 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         mListFileChecked = new ArrayList<>();
         mRecyclerView = findViewById(R.id.recyclerview_backup);
         mListAllFile = new ArrayList<>();
+        Intent intent = new Intent(this, ServiceAutoBackup.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        startForegroundService(intent);
         mHandler = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
@@ -172,7 +198,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         }else {
             initFile();
             mBTUpdateName.setVisibility(View.GONE);
-            fragmentStatusBackUp = new FragmentStatusBackUp(dialog, 0);
+            fragmentStatusBackUp = new FragmentStatusBackUp(dialog , 0);
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.FagmentBackup, fragmentStatusBackUp).commit();
             adapterListFile=new AdapterItemFile(this, mListAllFile, true ,false);
@@ -229,7 +255,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     public void onConfirm(int type) {
         if(type == 0) {
             if (isRestore) {
-                fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, true);
+                fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup ,dialog, true);
                 fragmentBackuping.setTotalCapacity(mTotalCapacityChecked);
                 fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
@@ -238,12 +264,12 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                 mRecyclerView.setAdapter(adapterListFile);
 
             } else {
-               fragmentBackuping = new FragmentBackuping(mListFileChecked, dialog, false);
-                fragmentBackuping.setCallbackBackup(this);
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.FagmentBackup, fragmentBackuping).commit();
-                AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, false);
-                mRecyclerView.setAdapter(adapterListFile);
+                    fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup, dialog, false);
+                    fragmentBackuping.setCallbackBackup(this);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.FagmentBackup, fragmentBackuping).commit();
+                    AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, false);
+                    mRecyclerView.setAdapter(adapterListFile);
             }
         }else {
             Log.d("Tiennvh", "onConfirm: "+type);

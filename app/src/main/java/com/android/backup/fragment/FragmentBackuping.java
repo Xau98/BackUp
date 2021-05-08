@@ -1,6 +1,7 @@
 package com.android.backup.fragment;
 
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import com.android.backup.FileItem;
 import com.android.backup.R;
 import com.android.backup.code.Code;
 import com.android.backup.handleFile;
+import com.android.backup.service.ServiceAutoBackup;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -54,10 +56,13 @@ public class FragmentBackuping extends Fragment {
     int mCountUpload = 0;
     long mTotalCapacity =0;
     boolean mIsRestore = false;
-    public FragmentBackuping(ArrayList<FileItem> listFileChecked, Dialog dialog, boolean isRestore) {
+    ServiceAutoBackup mServiceAutoBackup;
+    public FragmentBackuping(ArrayList<FileItem> listFileChecked,ServiceAutoBackup serviceAutoBackup, Dialog dialog, boolean isRestore) {
         mListFileChecked = listFileChecked;
         this.dialog=dialog;
         mIsRestore = isRestore;
+        mServiceAutoBackup = serviceAutoBackup;
+
     }
 
     public  void setTotalCapacity(long totalCapacity){
@@ -78,7 +83,7 @@ public class FragmentBackuping extends Fragment {
         mStatusLoad = view.findViewById(R.id.status_load);
         mPauseBackup = view.findViewById(R.id.pause_bachup);
         mStopBackup = view.findViewById(R.id.stop_bachup);
-
+        //Log.d("Tiennvh", "onCreateView: "+ mServiceAutoBackup);
         mPauseBackup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,9 +118,6 @@ public class FragmentBackuping extends Fragment {
                             mStopBackup.setVisibility(View.INVISIBLE);
                             mPauseBackup.setVisibility(View.INVISIBLE);
                             mCallbackBackup.onFinishItem(0);
-//                            for (int i=0;i<mListFileChecked.size();i++){
-//                                handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mListFileChecked.get(i).getName()+".txt");
-//                            }
                             //Bkav TienNVh :comment
                            // mListFileChecked.clear();
                             mCountUpload++;
@@ -152,33 +154,30 @@ public class FragmentBackuping extends Fragment {
         showTotalFileChecked.setText((Math.ceil(capacity* 10) / 10)+"MB");
         return view;
     }
+
     AsyncTaskUpload myAsyncTaskCode;
-
-    public AsyncTaskUpload getMyAsyncTaskCode() {
-        return myAsyncTaskCode;
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onStart() {
         super.onStart();
         if(!mIsRestore) {
             String namePathBackup = "false";
-            for (int i = 0; i < mListFileChecked.size(); i++) {
+            if(mServiceAutoBackup!=null) mServiceAutoBackup.onUploadAll(mListFileChecked);
+          /*   mServiceAutoBackup.onUploadAll(mListFileChecked);
+           for (int i = 0; i < mListFileChecked.size(); i++) {
                 if(i==0)
                 {
                     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
                     LocalDateTime now = LocalDateTime.now();
                      namePathBackup = "Data"+dtf.format(now);
                 }
-                Log.d("Tiennvh", "onStart: "+ namePathBackup);
-
                 myAsyncTaskCode = new AsyncTaskUpload(getContext(), mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
-
                 myAsyncTaskCode.execute();
-
-            }
-
+                if(myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING)
+                {
+                    // AsyncTask Running
+                    Log.d("Tiennvh", "onStart:myAsyncTaskCode run ");
+                }
+            }*/
         }else {
             AsyncTaskDownload asyncTaskDownload;
             for (int i = 0; i < mListFileChecked.size(); i++) {

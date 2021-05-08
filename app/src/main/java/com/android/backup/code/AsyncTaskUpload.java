@@ -26,19 +26,20 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
     FileItem mFileItem;
     Context mContext;
     String mConvertName;
-    ProgressBar mProgressBar;
+    long[] mTotalDetail;
     TextView mStatusLoad;
     Callback mCallback;
     String mPathsave ;
 
-    public AsyncTaskUpload(Context context , FileItem fileItem, String  pathSave , Callback callback, ProgressBar progressBar , TextView status) {
+    public AsyncTaskUpload(Context context , FileItem fileItem, String  pathSave , Callback callback, long[] totalDetail , TextView status) {
         this.mFileItem = fileItem;
         mContext = context;
-        mProgressBar = progressBar;
+        mTotalDetail = totalDetail;
         mStatusLoad = status;
         mCallback = callback;
         mPathsave = pathSave;
     }
+
 
     @Override
     protected void onPreExecute() {
@@ -50,7 +51,7 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         if(!file.exists())
             file.getParentFile().mkdirs();
         //Bkav TienNVh :add /Album
-        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/Album/"+mFileItem.getName(),pathout+ mConvertName+".zip");
+        CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+mFileItem.getName(),pathout+ mConvertName+".zip");
     }
 
     @Override
@@ -75,7 +76,7 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         super.onPostExecute(s);
         Log.d("Tiennvh", "onPostExecute: "+s);
         String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName +".txt";
-        RequestToServer.upload(mContext, mPathsave ,"uploadfile",namePath, mCallback, mProgressBar, mStatusLoad );
+        RequestToServer.upload(mContext, mPathsave ,"uploadfile",namePath, mCallback, mTotalDetail, mStatusLoad );
         handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName+".zip");
     }
 }

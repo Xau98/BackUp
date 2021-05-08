@@ -217,6 +217,7 @@ public class MainActivity extends Activity {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
+                Log.d("Tiennvh", "onFailure: "+ e);
                 mProgressBar.setVisibility(View.GONE);
             }
 

@@ -3,8 +3,11 @@ package com.android.backup.service;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.net.ConnectivityDiagnosticsManager;
+import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.ProgressBar;
@@ -23,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -74,28 +78,8 @@ public class ServiceAutoBackup extends Service {
     }
 
     public void updateUI(){
-   /*  new Thread(new Runnable() {
-            @Override
-            public void run() {
-                  for (int i=0;i<100;i++){
-                    notificationLayout.setProgressBar(R.id.progress_bar_notification , 100,i, false);
-                    notificationLayout.setTextViewText(R.id.status_load_notification,"đang backuping "+i+"%");
-                    startForeground(1, builder.build());
-                myAsyncTaskCode = new AsyncTaskUpload(this, mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
-                    myAsyncTaskCode.execute();
-                    builder.setProgress(0,0,false);
-                    notificationManager.notify(1, builder.build());
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d("Tiennvh", "run: "+i);
-                }
-            }
-        }).start();*/
-        onUploadAll();
+        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/Album");
+        onUploadAll(mListAllFile);
     }
 
     public class BackupBinder extends Binder {
@@ -105,30 +89,24 @@ public class ServiceAutoBackup extends Service {
     }
     AsyncTaskUpload myAsyncTaskCode;
     long mTotalSize = 0;
-    long totalDetail = 0;
+    long[] totalDetail  = new long[1];;
     int j =0;
-    public void onUploadAll(){
 
-
-        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/Album");
-        mTotalSize = handleFile.totalCapacity(mListAllFile);
-        Log.d("Tiennvh", "onUploadAll1: "+mTotalSize);
+    public void onUploadAll(ArrayList<FileItem> listAllFile){
+        senNotification();
+        mTotalSize = handleFile.totalCapacity(listAllFile);
         String namePathBackup ="False";
 
         Callback  callback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Log.d("Tiennvh", "onFailure: "+e);
-
-
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                Log.d("Tiennvh", "onResponse: "+ response.isSuccessful());
-                totalDetail += mListAllFile.get(j).getSize();
-                float percen = 100f *totalDetail/mTotalSize;
-                Log.d("Tiennvh"+percen, mTotalSize+"onUploadAll: "+ totalDetail);
+                totalDetail[0] += listAllFile.get(j).getSize();
+                float percen = 100f *totalDetail[0]/mTotalSize;
                 notificationLayout.setProgressBar(R.id.progress_bar_notification , 100, (int) percen, false);
                 notificationLayout.setTextViewText(R.id.status_load_notification,"đang backuping "+(int) percen+"%");
                 startForeground(1, builder.build());
@@ -136,16 +114,26 @@ public class ServiceAutoBackup extends Service {
             }
         };
 
-        for(int i=0;i<mListAllFile.size();i++) {
+        for(int i=0;i<listAllFile.size();i++) {
             if(i==0)
             {
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
                 LocalDateTime now = LocalDateTime.now();
                 namePathBackup = "Data"+dtf.format(now);
             }
-            myAsyncTaskCode = new AsyncTaskUpload(this, mListAllFile.get(i), namePathBackup, callback, null, null);
+            myAsyncTaskCode = new AsyncTaskUpload(this, listAllFile.get(i), namePathBackup, callback, totalDetail, null);
             myAsyncTaskCode.execute();
         }
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("Tiennvh"+mTotalSize, "run123: "+ totalDetail[0]);
+                if(mTotalSize <= totalDetail[0])
+                    handler.removeCallbacksAndMessages(null);
+                handler.postDelayed(this, 500);
+            }
+        }, 100);
     }
 
     @Override
