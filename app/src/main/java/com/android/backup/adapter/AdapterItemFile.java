@@ -91,7 +91,6 @@ public class AdapterItemFile extends RecyclerView.Adapter<AdapterItemFile.ViewHo
             nameFile = itemView.findViewById(R.id.name_app);
             capacity = itemView.findViewById(R.id.capacity);
             checkBox = itemView.findViewById(R.id.checkbox);
-
             statusBackup = itemView.findViewById(R.id.status_backup);
             if(aBoolean) {
                 checkBox.setVisibility(View.VISIBLE);

@@ -27,15 +27,13 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
     Context mContext;
     String mConvertName;
     long[] mTotalDetail;
-    TextView mStatusLoad;
     Callback mCallback;
     String mPathsave ;
 
-    public AsyncTaskUpload(Context context , FileItem fileItem, String  pathSave , Callback callback, long[] totalDetail , TextView status) {
+    public AsyncTaskUpload(Context context , FileItem fileItem, String  pathSave , Callback callback, long[] totalDetail) {
         this.mFileItem = fileItem;
         mContext = context;
         mTotalDetail = totalDetail;
-        mStatusLoad = status;
         mCallback = callback;
         mPathsave = pathSave;
     }
@@ -44,13 +42,14 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        Log.d("Tiennvh", "onPreExecute: ");
+        //Bkav TienNVh : Comment mTotalDetail[1] =FileItem.getDirectorySizeLegacy(new File(handleFile.PATH_ROOT+"/DCIM/"+mFileItem.getName()));
+        mTotalDetail[1] =FileItem.getDirectorySizeLegacy(new File(handleFile.PATH_ROOT+"/"+mFileItem.getName()));
         mConvertName = ConvertNameFile.NameFolderToFile(mFileItem.getName().toString());
         String pathout= handleFile.PATH_ROOT+"/CompressionFile/";
         File file =new File(pathout);
         if(!file.exists())
             file.getParentFile().mkdirs();
-        //Bkav TienNVh :add /Album
+        //Bkav TienNVh :add DCIM/
         CompressionFile.zipDirectory(handleFile.PATH_ROOT+"/"+mFileItem.getName(),pathout+ mConvertName+".zip");
     }
 
@@ -76,7 +75,7 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
         super.onPostExecute(s);
         Log.d("Tiennvh", "onPostExecute: "+s);
         String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName +".txt";
-        RequestToServer.upload(mContext, mPathsave ,"uploadfile",namePath, mCallback, mTotalDetail, mStatusLoad );
+        RequestToServer.upload(mContext, mPathsave ,"uploadfile",namePath, mCallback, mTotalDetail);
         handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName+".zip");
     }
 }

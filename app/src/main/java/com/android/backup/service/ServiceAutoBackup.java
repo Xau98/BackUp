@@ -3,26 +3,35 @@ package com.android.backup.service;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.ConnectivityDiagnosticsManager;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.RemoteViews;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.android.backup.FileItem;
 import com.android.backup.R;
+import com.android.backup.RequestToServer;
+import com.android.backup.activity.MainActivity;
 import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +50,10 @@ import static com.android.backup.activity.HomePage.CHANNEL_ID;
 public class ServiceAutoBackup extends Service {
     private IBinder binder = new BackupBinder();
     private ArrayList<FileItem> mListAllFile ;
+    AsyncTaskUpload myAsyncTaskCode;
+    long mTotalSize = 0;
+    long[] totalDetail  = new long[3];;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -55,7 +68,6 @@ public class ServiceAutoBackup extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         return START_NOT_STICKY;
     }
     RemoteViews notificationLayout;
@@ -78,8 +90,8 @@ public class ServiceAutoBackup extends Service {
     }
 
     public void updateUI(){
-        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/Album");
-        onUploadAll(mListAllFile);
+        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/DCIM");
+        onUploadAll(mListAllFile , null, null,"Bphone 4");
     }
 
     public class BackupBinder extends Binder {
@@ -87,16 +99,28 @@ public class ServiceAutoBackup extends Service {
             return ServiceAutoBackup.this;
         }
     }
-    AsyncTaskUpload myAsyncTaskCode;
-    long mTotalSize = 0;
-    long[] totalDetail  = new long[1];;
-    int j =0;
 
-    public void onUploadAll(ArrayList<FileItem> listAllFile){
+    public boolean isAsyncTaskRunning(){
+        if(myAsyncTaskCode == null)
+            return false;
+       return  myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING;
+    }
+
+    int percenProgress = 0;
+
+    public int getPercenProgress(){
+        return percenProgress;
+    }
+
+    String namePathBackup = null;
+    public String getNamePathBackup(){
+        return namePathBackup;
+    }
+
+    public void onUploadAll(ArrayList<FileItem> listAllFile, ProgressBar progressBar, TextView status, String namebackup){
         senNotification();
         mTotalSize = handleFile.totalCapacity(listAllFile);
-        String namePathBackup ="False";
-
+        String nameFolderBackup = null;
         Callback  callback = new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -105,12 +129,7 @@ public class ServiceAutoBackup extends Service {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                totalDetail[0] += listAllFile.get(j).getSize();
-                float percen = 100f *totalDetail[0]/mTotalSize;
-                notificationLayout.setProgressBar(R.id.progress_bar_notification , 100, (int) percen, false);
-                notificationLayout.setTextViewText(R.id.status_load_notification,"đang backuping "+(int) percen+"%");
-                startForeground(1, builder.build());
-                j++;
+                Log.d("Tiennvh", "onResponse: Thanh cong" + response.body().string());
             }
         };
 
@@ -119,22 +138,82 @@ public class ServiceAutoBackup extends Service {
             {
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
                 LocalDateTime now = LocalDateTime.now();
-                namePathBackup = "Data"+dtf.format(now);
+                nameFolderBackup = "Data"+dtf.format(now);
             }
-            myAsyncTaskCode = new AsyncTaskUpload(this, listAllFile.get(i), namePathBackup, callback, totalDetail, null);
+            myAsyncTaskCode = new AsyncTaskUpload(this, listAllFile.get(i), nameFolderBackup, callback, totalDetail);
             myAsyncTaskCode.execute();
         }
+
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Log.d("Tiennvh"+mTotalSize, "run123: "+ totalDetail[0]);
-                if(mTotalSize <= totalDetail[0])
-                    handler.removeCallbacksAndMessages(null);
-                handler.postDelayed(this, 500);
+                float percensub = (totalDetail[0]/100f)*totalDetail[1];
+                float percen = 100f * percensub / mTotalSize;
+                percenProgress = Math.round(percen);
+                notificationLayout.setProgressBar(R.id.progress_bar_notification , 100, percenProgress, false);
+                notificationLayout.setTextViewText(R.id.status_load_notification,"đang backuping "+  percenProgress+"%");
+                Log.d("Tiennvh", "percen: "+percenProgress);
+                if(progressBar !=null){
+                    progressBar.setProgress(percenProgress);
+                    status.setText("Đang Backuping : "+ percenProgress+"%");
+                }
+                if(Math.round(percen) != 100) {
+                    handler.postDelayed(this, 300);
+                }else {
+                    notificationLayout.setTextViewText(R.id.status_load_notification,"đã xong  ");
+                    if(progressBar !=null){
+                        progressBar.setProgress(percenProgress);
+                        status.setText("đã xong");
+                    }
+                }
+                startForeground(1, builder.build());
             }
         }, 100);
+
+       Callback callback1 = new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Log.d("Tiennvh", "onFailure: "+e);
+
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.isSuccessful()) {
+                   String mJsonData = response.body().string();
+                    Log.d("Tiennvh", "onResponse: "+mJsonData);
+                }
+            }
+        };
+
+        //Bkav Tiennvh: update DB
+        if(nameFolderBackup != null) {
+            SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
+            JSONObject jsonObject = new JSONObject();
+            String id_account = sharedPref.getString("id", "0");
+            String pathBackUpRoot = "/root/Bkav/Data/" + id_account + "/"+nameFolderBackup;
+            try {
+                jsonObject.put("id", id_account);
+                jsonObject.put("token", sharedPref.getString("token", "0"));
+                jsonObject.put("namebackup", namebackup);
+                jsonObject.put("namedevice", "Bphone 4");
+                jsonObject.put("path", pathBackUpRoot);
+                String path = "insertbackup";
+                RequestToServer.post(path, jsonObject, callback1);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                Log.d("Tiennvh", "onCallbackBackup: "+e);
+            }
+        }else{
+            Log.d("Tiennvh", "onCallbackBackup: Not OKE");
+        }
     }
+
+    public void onDownload(){
+
+    }
+
 
     @Override
     public void onDestroy() {

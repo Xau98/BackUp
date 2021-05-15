@@ -54,7 +54,7 @@ public class RequestToServer {
     }
 
 // RequestToServer.upload("uploadfile",handleFile.PATH_ROOT+"/Android/test2.zip", callback );
-    public static  void upload(Context context,String  pathSave , String path, String namePath , Callback callback, long[] totalDetail , TextView status){
+    public static  void upload(Context context,String  pathSave , String path, String namePath , Callback callback, long[] totalDetail){
         OkHttpClient client = new OkHttpClient();
         String url = AD_SERVER + path;
         File file = new File(namePath);
@@ -71,15 +71,12 @@ public class RequestToServer {
                 float percentage = 100f * bytesWritten / contentLength;
                 if (percentage >= 0) {
                     Log.d("progress ", percentage + "");
-                    totalDetail[0] = bytesWritten;
                     int percen = Math.round(percentage);
-                    if(status!=null) {
-                        status.setText("Sao lưu " + percen + "%");
-                    }
+                    totalDetail[0] = percen;
+
                 } else {
                     //Something went wrong
-                    if(status!=null)
-                     status.setText("sao lưu lỗi ...");
+                    totalDetail[0] = -1;
                     Log.d("No progress ", 0 + "");
                 }
             }

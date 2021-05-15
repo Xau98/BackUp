@@ -47,29 +47,23 @@ public class FragmentBackuping extends Fragment {
     ArrayList <FileItem> mListFileChecked;
     ProgressBar mProgressBar;
     TextView showTotalFileChecked , mStatusLoad;
-    Callback callback;
-    callbackBackup mCallbackBackup;
     ImageButton mPauseBackup, mStopBackup;
     Dialog dialog;
-    String mJsonData ;
-    Handler mHandler;
     int mCountUpload = 0;
     long mTotalCapacity =0;
     boolean mIsRestore = false;
+    String mNameBackup = null;
     ServiceAutoBackup mServiceAutoBackup;
-    public FragmentBackuping(ArrayList<FileItem> listFileChecked,ServiceAutoBackup serviceAutoBackup, Dialog dialog, boolean isRestore) {
+    public FragmentBackuping(ArrayList<FileItem> listFileChecked,ServiceAutoBackup serviceAutoBackup, Dialog dialog, boolean isRestore, String namebackup) {
         mListFileChecked = listFileChecked;
         this.dialog=dialog;
         mIsRestore = isRestore;
         mServiceAutoBackup = serviceAutoBackup;
-
+        mNameBackup = namebackup;
     }
 
     public  void setTotalCapacity(long totalCapacity){
         mTotalCapacity = totalCapacity;
-    }
-    public void setCallbackBackup(callbackBackup callbackBackup){
-        mCallbackBackup = callbackBackup;
     }
 
 
@@ -107,7 +101,7 @@ public class FragmentBackuping extends Fragment {
             }
         });
 
-        mHandler = new Handler() {
+   /*     mHandler = new Handler() {
             @Override
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
@@ -124,28 +118,7 @@ public class FragmentBackuping extends Fragment {
                         }
                 }
             }
-        };
-
-        callback = new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Log.d("Tiennvh", "onFailure: "+e);
-                mCallbackBackup.onCallbackBackup("False");
-
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    mJsonData = response.body().string();
-                    Log.d("Tiennvh", "onResponse: "+mJsonData);
-                    mHandler.sendEmptyMessage(MSG_BACKUP);
-                }else
-                    mCallbackBackup.onCallbackBackup("False");
-            }
-        };
-
-        Log.d("Tiennvh", "onCreateView: "+handleFile.totalCapacity(mListFileChecked)+"");
+        };*/
         float capacity = 0;
         if(!mIsRestore)
             capacity = handleFile.KBToMB(handleFile.totalCapacity(mListFileChecked));
@@ -155,29 +128,36 @@ public class FragmentBackuping extends Fragment {
         return view;
     }
 
-    AsyncTaskUpload myAsyncTaskCode;
     @Override
     public void onStart() {
         super.onStart();
         if(!mIsRestore) {
-            String namePathBackup = "false";
-            if(mServiceAutoBackup!=null) mServiceAutoBackup.onUploadAll(mListFileChecked);
-          /*   mServiceAutoBackup.onUploadAll(mListFileChecked);
-           for (int i = 0; i < mListFileChecked.size(); i++) {
-                if(i==0)
-                {
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-                    LocalDateTime now = LocalDateTime.now();
-                     namePathBackup = "Data"+dtf.format(now);
+            if(mServiceAutoBackup!=null) {
+                if(mServiceAutoBackup.isAsyncTaskRunning()){
+                    int percen =mServiceAutoBackup.getPercenProgress();
+                    mProgressBar.setProgress(percen);
+                    if(percen == 100) {
+                        mStatusLoad.setText("Đã xong");
+                    }
+                }else {
+                    mServiceAutoBackup.onUploadAll(mListFileChecked ,mProgressBar, mStatusLoad , mNameBackup );
                 }
-                myAsyncTaskCode = new AsyncTaskUpload(getContext(), mListFileChecked.get(i), namePathBackup, callback, mProgressBar, mStatusLoad);
-                myAsyncTaskCode.execute();
-                if(myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING)
-                {
-                    // AsyncTask Running
-                    Log.d("Tiennvh", "onStart:myAsyncTaskCode run ");
-                }
-            }*/
+
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        int percen =mServiceAutoBackup.getPercenProgress();
+                        mProgressBar.setProgress(percen);
+                        mStatusLoad.setText("Đang Backuping : "+percen+"%");
+                        if(percen == 100) {
+                            mStatusLoad.setText("Đã xong");
+                        }else
+                            handler.postDelayed(this, 500);
+                    }
+                }, 100);
+
+            }
         }else {
             AsyncTaskDownload asyncTaskDownload;
             for (int i = 0; i < mListFileChecked.size(); i++) {
@@ -185,10 +165,5 @@ public class FragmentBackuping extends Fragment {
                 asyncTaskDownload.execute();
             }
         }
-    }
-
-   public interface  callbackBackup{
-        void onCallbackBackup(String isSuccessful);
-        void onFinishItem(int index);
     }
 }

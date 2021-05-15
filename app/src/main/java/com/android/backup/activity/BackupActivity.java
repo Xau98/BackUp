@@ -62,8 +62,7 @@ import okhttp3.Response;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder,
-        FragmentBackuping.callbackBackup   {
+public class BackupActivity extends AppCompatActivity implements Dialog.onConfirmBackup, AdapterItemFile.isChooseFolder{
     FragmentStatusBackUp fragmentStatusBackUp;
     FragmentRestoring mFragmentRestoring;
     FragmentBackuping fragmentBackuping;
@@ -255,17 +254,15 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
     public void onConfirm(int type) {
         if(type == 0) {
             if (isRestore) {
-                fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup ,dialog, true);
+                fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup ,dialog, true, null);
                 fragmentBackuping.setTotalCapacity(mTotalCapacityChecked);
-                fragmentBackuping.setCallbackBackup(this);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
 
             } else {
-                    fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup, dialog, false);
-                    fragmentBackuping.setCallbackBackup(this);
+                    fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup, dialog, false,  mNameBackup.getText().toString());
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                     AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, false);
@@ -311,31 +308,7 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         }
 
     }
-
-
-    @Override
-    public void onCallbackBackup(String isSuccessful) {
-        //Bkav Tiennvh: update DB
-        if(!isSuccessful.equals("False")) {
-             SharedPreferences sharedPref = getSharedPreferences(MainActivity.SHAREPREFENCE, MODE_PRIVATE);
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put("id", sharedPref.getString("id", "0"));
-                jsonObject.put("token", sharedPref.getString("token", "0"));
-                jsonObject.put("namebackup", mNameBackup.getText().toString());
-                jsonObject.put("namedevice", "Bphone 4");
-                jsonObject.put("path", isSuccessful);
-                String path = "insertbackup";
-                RequestToServer.post(path, jsonObject, mCallback);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.d("Tiennvh", "onCallbackBackup: "+e);
-            }
-        }else{
-            Log.d("Tiennvh", "onCallbackBackup: Not OKE");
-        }
-    }
-
+/*
     @Override
     public void onFinishItem(int index) {
         Log.d("Tiennvh", "onFinishItem: "+index);
@@ -344,5 +317,5 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         AdapterItemFile adapterListFile =new AdapterItemFile(this, mListFileChecked, false ,false);
          mRecyclerView.setAdapter(adapterListFile);
 
-    }
+    }*/
 }
