@@ -30,6 +30,7 @@ import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.handleFile;
 
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,6 +51,7 @@ import static com.android.backup.activity.HomePage.CHANNEL_ID;
 public class ServiceAutoBackup extends Service {
     private IBinder binder = new BackupBinder();
     private ArrayList<FileItem> mListAllFile ;
+    private ArrayList<FileItem> mListSelected;
     AsyncTaskUpload myAsyncTaskCode;
     long mTotalSize = 0;
     long[] totalDetail  = new long[3];;
@@ -119,6 +121,7 @@ public class ServiceAutoBackup extends Service {
 
     public void onUploadAll(ArrayList<FileItem> listAllFile, ProgressBar progressBar, TextView status, String namebackup){
         senNotification();
+        mListSelected = listAllFile;
         mTotalSize = handleFile.totalCapacity(listAllFile);
         String nameFolderBackup = null;
         Callback  callback = new Callback() {
@@ -129,7 +132,15 @@ public class ServiceAutoBackup extends Service {
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                Log.d("Tiennvh", "onResponse: Thanh cong" + response.body().string());
+                Log.d("Tiennvh", "onResponse: Thanh cong"  );
+                String fullname = response.body().string();
+                String namefile =  fullname.substring(0, fullname.length()-4);
+                Log.d("Tiennvh", "onResponse: "+ namefile);
+                for (int i = 0 ; i < listAllFile.size();i++){
+                    if(namefile.equals(listAllFile.get(i).getName()))
+                        mListSelected.get(i).setType(1);
+                }
+
             }
         };
 
@@ -140,6 +151,7 @@ public class ServiceAutoBackup extends Service {
                 LocalDateTime now = LocalDateTime.now();
                 nameFolderBackup = "Data"+dtf.format(now);
             }
+            Log.d("Tiennvh", "onUploadAll: "+ listAllFile.get(i).getName());
             myAsyncTaskCode = new AsyncTaskUpload(this, listAllFile.get(i), nameFolderBackup, callback, totalDetail);
             myAsyncTaskCode.execute();
         }
@@ -207,6 +219,14 @@ public class ServiceAutoBackup extends Service {
             }
         }else{
             Log.d("Tiennvh", "onCallbackBackup: Not OKE");
+        }
+    }
+
+    public void onStopBackup(){
+        if(myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING){
+            JSONArray jsArray = new JSONArray(mListSelected);
+
+            Log.d("Tiennvh", "onStopBackup: "+jsArray);
         }
     }
 

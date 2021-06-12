@@ -97,6 +97,8 @@ public class FragmentBackuping extends Fragment {
                 mStatusLoad.setText("Tạm dừng ...");
                 LayoutInflater inflater = getLayoutInflater();
                 String title ="Bạn có chắc muốn dừng đồng bộ dữ liệu hay không ?";
+                if(mServiceAutoBackup!= null)
+                    mServiceAutoBackup.onStopBackup();
                 dialog.showDialog(getContext(), inflater, title, true,2);
             }
         });
@@ -131,6 +133,8 @@ public class FragmentBackuping extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        //TODO: Them dieu kien backup
+        Log.d("Tiennvh", "onStart: "+mServiceAutoBackup);
         if(!mIsRestore) {
             if(mServiceAutoBackup!=null) {
                 if(mServiceAutoBackup.isAsyncTaskRunning()){

@@ -269,6 +269,8 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                     mRecyclerView.setAdapter(adapterListFile);
             }
         }else {
+
+
             Log.d("Tiennvh", "onConfirm: "+type);
         }
 

@@ -185,12 +185,15 @@ public class MainActivity extends Activity {
             public void handleMessage(@NonNull Message msg) {
                 switch (msg.what) {
                     case MSG_LOGIN:
-                        if (!mJsonData.equals("False")) {
-                            try {
-                                JSONObject Jobject = new JSONObject(mJsonData);
+                        try {
+                            JSONObject Jobject0 = new JSONObject(mJsonData);
+                            String result = Jobject0.get("result").toString();
+                            Log.d("Tiennvh"+result, "handleMessage: "+Jobject0.get("success")+"//"+(Jobject0.get("success").toString().equals("true")));
+                        if (Jobject0.get("success").toString().equals("true")) {
+                                JSONObject Jobject = new JSONObject(result);
                                 SharedPreferences.Editor editor = mPreferences.edit();
-                                editor.putString("id", Jobject.getInt("id") + "");
-                                editor.putString("name", Jobject.getString("name"));
+                                editor.putString("id", Jobject.getString("_id"));
+                                editor.putString("name", Jobject.getString("username"));
                                 editor.putString("token", Jobject.getString("token"));
                                 editor.putString("email", Jobject.getString("email"));
                                 editor.putString("date_create", Jobject.getString("date_create"));
@@ -200,15 +203,14 @@ public class MainActivity extends Activity {
                                 intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                                 Toast.makeText(getBaseContext(), "Đăng nhập thành công :" + Jobject.getInt("id"), LENGTH_SHORT).show();
-                            } catch (JSONException e) {
-
-                                Log.d("Tiennvh", "handleMessage: " + e);
-                            }
                             break;
                         }else {
 
                             Toast.makeText(getApplicationContext(), "Đăng nhập thất bại "  , LENGTH_SHORT).show();
                         }
+                        } catch (JSONException e) {
+                        Log.d("Tiennvh", "handleMessage: " + e);
+                       }
                 }
             }
         };
