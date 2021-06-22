@@ -9,7 +9,6 @@ public class JobService  extends android.app.job.JobService {
 
     @Override
     public boolean onStartJob(JobParameters params) {
-        Log.d("Tiennvh", "onStartJob: ");
         doBackground(params);
         return true;
     }
@@ -19,7 +18,6 @@ public class JobService  extends android.app.job.JobService {
             @Override
             public void run() {
                 for (int i=0;i<100;i++){
-                    Log.d("Tiennvh", "run: "+i);
                     if(jobCancelled)
                         return;
                     try {

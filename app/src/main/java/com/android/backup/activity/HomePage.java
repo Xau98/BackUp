@@ -100,7 +100,6 @@ public  static  final String CHANNEL_ID= "channel_service";
                 startActivity(intent);
             }
         });
-        Log.d("Tiennvh", "onCreate: "+mSharedPref.getBoolean("modeautobackup", false));
         mAutoBackup.setChecked(mSharedPref.getBoolean("modeautobackup", false));
 
         mAutoBackup.setOnClickListener(new View.OnClickListener() {
@@ -181,6 +180,7 @@ public  static  final String CHANNEL_ID= "channel_service";
 //            editor.putInt("play", mPosition);
 //            editor.putString("nameSong",mNameSong.getText()+"");
 //            editor.apply();
+
         }
     };
 
@@ -208,13 +208,13 @@ public  static  final String CHANNEL_ID= "channel_service";
         tile.setText(title);
 
         if(radioBT_7Day.isChecked()){
-            //mScheduleTime = 7*24*60*1000;
-            mScheduleTime = 12*1000;
+            mScheduleTime = 7*24*60*1000;
+            // mScheduleTime = 12*1000;
         }
 
         if(radioBT_Everyday.isChecked()){
-           // mScheduleTime = 1*24*60*1000;
-            mScheduleTime = 6*1000;
+           mScheduleTime = 1*24*60*1000;
+          //  mScheduleTime = 6*1000;
         }
 
         if(!statusSwtich){

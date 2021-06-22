@@ -47,14 +47,19 @@ public class FragmentBackuping extends Fragment {
     ArrayList <FileItem> mListFileChecked;
     ProgressBar mProgressBar;
     TextView showTotalFileChecked , mStatusLoad;
-    ImageButton mPauseBackup, mStopBackup;
     Dialog dialog;
+    callbackBackuping mCallbackBackuping;
     int mCountUpload = 0;
     long mTotalCapacity =0;
     boolean mIsRestore = false;
     String mNameBackup = null;
     ServiceAutoBackup mServiceAutoBackup;
-    public FragmentBackuping(ArrayList<FileItem> listFileChecked,ServiceAutoBackup serviceAutoBackup, Dialog dialog, boolean isRestore, String namebackup) {
+
+    public void setmCallbackBackuping(callbackBackuping mCallbackBackuping) {
+        this.mCallbackBackuping = mCallbackBackuping;
+    }
+
+    public FragmentBackuping(ArrayList<FileItem> listFileChecked, ServiceAutoBackup serviceAutoBackup, Dialog dialog, boolean isRestore, String namebackup) {
         mListFileChecked = listFileChecked;
         this.dialog=dialog;
         mIsRestore = isRestore;
@@ -75,33 +80,6 @@ public class FragmentBackuping extends Fragment {
         showTotalFileChecked = view.findViewById(R.id.capacity_backing);
         mProgressBar = view.findViewById(R.id.progress_bar);
         mStatusLoad = view.findViewById(R.id.status_load);
-        mPauseBackup = view.findViewById(R.id.pause_bachup);
-        mStopBackup = view.findViewById(R.id.stop_bachup);
-        //Log.d("Tiennvh", "onCreateView: "+ mServiceAutoBackup);
-        mPauseBackup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPauseBackup.setVisibility(View.GONE);
-                mStopBackup.setVisibility(View.VISIBLE);
-                mStatusLoad.setText("Đang chuẩn bị...");
-                LayoutInflater inflater = getLayoutInflater();
-                String title ="Bạn có chắc muốn tiếp tục đồng bộ dữ liệu hay không ?";
-                dialog.showDialog(getContext(), inflater, title, true, 1);
-            }
-        });
-        mStopBackup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPauseBackup.setVisibility(View.VISIBLE);
-                mStopBackup.setVisibility(View.GONE);
-                mStatusLoad.setText("Tạm dừng ...");
-                LayoutInflater inflater = getLayoutInflater();
-                String title ="Bạn có chắc muốn dừng đồng bộ dữ liệu hay không ?";
-                if(mServiceAutoBackup!= null)
-                    mServiceAutoBackup.onStopBackup();
-                dialog.showDialog(getContext(), inflater, title, true,2);
-            }
-        });
 
    /*     mHandler = new Handler() {
             @Override
@@ -145,6 +123,7 @@ public class FragmentBackuping extends Fragment {
                     }
                 }else {
                     mServiceAutoBackup.onUploadAll(mListFileChecked ,mProgressBar, mStatusLoad , mNameBackup );
+
                 }
 
                 final Handler handler = new Handler();
@@ -163,11 +142,23 @@ public class FragmentBackuping extends Fragment {
 
             }
         }else {
+            if(mServiceAutoBackup!=null) {
+                int percen =mServiceAutoBackup.getPercenProgress();
+                mProgressBar.setProgress(percen);
+                if(percen == 100) {
+                    mStatusLoad.setText("Đã xong");
+                }
+
+            }
+
             AsyncTaskDownload asyncTaskDownload;
             for (int i = 0; i < mListFileChecked.size(); i++) {
                 asyncTaskDownload = new AsyncTaskDownload( getContext(),mListFileChecked.get(i) ,mProgressBar, mStatusLoad);
                 asyncTaskDownload.execute();
             }
         }
+    }
+    interface callbackBackuping{
+        void onCallbackBackuping(ArrayList <FileItem> mListchange);
     }
 }

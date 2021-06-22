@@ -23,9 +23,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Code {
 
-
-
-
     public static void encrypt(Context context, String pathInput , String pathOutput ) throws IOException, NoSuchAlgorithmException,
             NoSuchPaddingException, InvalidKeyException {
         FileInputStream fileInputStream = new FileInputStream(pathInput);

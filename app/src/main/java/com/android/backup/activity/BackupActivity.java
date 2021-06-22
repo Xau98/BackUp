@@ -52,6 +52,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import javax.crypto.NoSuchPaddingException;
@@ -92,6 +94,21 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
             mServiceBackup = binder.getMusicBinder();
             Log.d("Tiennvh", "onServiceConnected: "+mServiceBackup);
             mBound = true;
+            mServiceBackup.setmCallbackService(new ServiceAutoBackup.callbackService() {
+                @Override
+                public void callbackFinish(ArrayList<FileItem> mListSelected) {
+                    //Bkav TienNVh :
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            AdapterItemFile adapterListFile = new AdapterItemFile(getApplicationContext(), mListSelected, false, false);
+                            mRecyclerView.setAdapter(adapterListFile);
+                        }
+                    });
+
+
+                }
+            });
         }
 
         @Override
@@ -260,17 +277,17 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
                         .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                 AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, true);
                 mRecyclerView.setAdapter(adapterListFile);
-
             } else {
+                    mShowDateBackup.setVisibility(View.VISIBLE);
+                    mShowDateBackup.setText(getDateCurrent());
                     fragmentBackuping = new FragmentBackuping(mListFileChecked, mServiceBackup, dialog, false,  mNameBackup.getText().toString());
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.FagmentBackup, fragmentBackuping).commit();
                     AdapterItemFile adapterListFile = new AdapterItemFile(this, mListFileChecked, false, false);
                     mRecyclerView.setAdapter(adapterListFile);
             }
+            mNameBackup.setEnabled(false);
         }else {
-
-
             Log.d("Tiennvh", "onConfirm: "+type);
         }
 
@@ -310,6 +327,12 @@ public class BackupActivity extends AppCompatActivity implements Dialog.onConfir
         }
 
     }
+
+public String getDateCurrent(){
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime now = LocalDateTime.now();
+    return dtf.format(now);
+}
 /*
     @Override
     public void onFinishItem(int index) {

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -92,6 +93,7 @@ String mID_account;
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
                    mJsonData = response.body().string();
+                    Log.d("Tiennvh", "onResponse: "+ mJsonData);
                     try {
                         JSONObject Jobject = new JSONObject(mJsonData);
                         if( !Jobject.get("result").toString().equals("null")){
@@ -138,7 +140,7 @@ String mID_account;
         });
 
     }
-    public  void showDiaglog(){
+    public void showDiaglog(){
         LayoutInflater inflater = getLayoutInflater();
         View alertLayout = inflater.inflate(R.layout.dialog_confirm_code_email, null);
         AlertDialog.Builder alert = new AlertDialog.Builder(this);

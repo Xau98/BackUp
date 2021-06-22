@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.ConnectivityDiagnosticsManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -26,6 +27,7 @@ import com.android.backup.FileItem;
 import com.android.backup.R;
 import com.android.backup.RequestToServer;
 import com.android.backup.activity.MainActivity;
+import com.android.backup.code.AsyncTaskDownload;
 import com.android.backup.code.AsyncTaskUpload;
 import com.android.backup.handleFile;
 
@@ -53,6 +55,7 @@ public class ServiceAutoBackup extends Service {
     private ArrayList<FileItem> mListAllFile ;
     private ArrayList<FileItem> mListSelected;
     AsyncTaskUpload myAsyncTaskCode;
+    AsyncTaskDownload mAsyncTaskDownload;
     long mTotalSize = 0;
     long[] totalDetail  = new long[3];;
 
@@ -60,6 +63,41 @@ public class ServiceAutoBackup extends Service {
     public void onCreate() {
         super.onCreate();
         senNotification();
+    }
+
+    public void updateUI(){
+        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/DCIM");
+        String model = Build.MODEL;
+        onUploadAll(mListAllFile , null, null,model);
+    }
+
+    public class BackupBinder extends Binder {
+        public ServiceAutoBackup getMusicBinder() {
+            return ServiceAutoBackup.this;
+        }
+    }
+
+    public boolean isAsyncTaskRunning(){
+        if(myAsyncTaskCode == null)
+            return false;
+        return  myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING;
+    }
+
+    public boolean isAsyncTaskDownloadRunning(){
+        if(mAsyncTaskDownload == null)
+            return false;
+        return  mAsyncTaskDownload.getStatus() == AsyncTask.Status.RUNNING;
+    }
+
+    int percenProgress = 0;
+    public int getPercenProgress(){
+        return percenProgress;
+    }
+    final Handler mHandler = new Handler();
+    Runnable mRunnable ;
+    String namePathBackup = null;
+    public String getNamePathBackup(){
+        return namePathBackup;
     }
 
     @Nullable
@@ -88,35 +126,6 @@ public class ServiceAutoBackup extends Service {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setProgress(100,R.id.progress_bar_notification,true);
         startForeground(1, builder.build());
-
-    }
-
-    public void updateUI(){
-        mListAllFile = handleFile.loadFile(handleFile.PATH_ROOT+"/DCIM");
-        onUploadAll(mListAllFile , null, null,"Bphone 4");
-    }
-
-    public class BackupBinder extends Binder {
-        public ServiceAutoBackup getMusicBinder() {
-            return ServiceAutoBackup.this;
-        }
-    }
-
-    public boolean isAsyncTaskRunning(){
-        if(myAsyncTaskCode == null)
-            return false;
-       return  myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING;
-    }
-
-    int percenProgress = 0;
-
-    public int getPercenProgress(){
-        return percenProgress;
-    }
-
-    String namePathBackup = null;
-    public String getNamePathBackup(){
-        return namePathBackup;
     }
 
     public void onUploadAll(ArrayList<FileItem> listAllFile, ProgressBar progressBar, TextView status, String namebackup){
@@ -128,19 +137,27 @@ public class ServiceAutoBackup extends Service {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Log.d("Tiennvh", "onFailure: "+e);
+                if(mHandler!=null && mRunnable!=null)
+                 mHandler.postDelayed(mRunnable, 300);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                Log.d("Tiennvh", "onResponse: Thanh cong"  );
-                String fullname = response.body().string();
-                String namefile =  fullname.substring(0, fullname.length()-4);
-                Log.d("Tiennvh", "onResponse: "+ namefile);
-                for (int i = 0 ; i < listAllFile.size();i++){
-                    if(namefile.equals(listAllFile.get(i).getName()))
-                        mListSelected.get(i).setType(1);
+                if(response.isSuccessful()) {
+                    String fullname = response.body().string();
+                    String namefile = fullname.substring(0, fullname.length() - 4);
+                    for (int i = 0; i < listAllFile.size(); i++) {
+                        if (namefile.equals(listAllFile.get(i).getName())) {
+                            mListSelected.get(i).setType(1);
+                            mCallbackService.callbackFinish(mListSelected);
+                        }
+                    }
+                }else {
+                    if(mHandler!=null && mRunnable!=null)
+                        mHandler.postDelayed(mRunnable, 300);
+                    progressBar.setProgress(0);
+                    status.setText("Upload lỗi ");
                 }
-
             }
         };
 
@@ -155,9 +172,7 @@ public class ServiceAutoBackup extends Service {
             myAsyncTaskCode = new AsyncTaskUpload(this, listAllFile.get(i), nameFolderBackup, callback, totalDetail);
             myAsyncTaskCode.execute();
         }
-
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        mRunnable = new Runnable() {
             @Override
             public void run() {
                 float percensub = (totalDetail[0]/100f)*totalDetail[1];
@@ -171,7 +186,7 @@ public class ServiceAutoBackup extends Service {
                     status.setText("Đang Backuping : "+ percenProgress+"%");
                 }
                 if(Math.round(percen) != 100) {
-                    handler.postDelayed(this, 300);
+                    mHandler.postDelayed(this, 300);
                 }else {
                     notificationLayout.setTextViewText(R.id.status_load_notification,"đã xong  ");
                     if(progressBar !=null){
@@ -181,7 +196,9 @@ public class ServiceAutoBackup extends Service {
                 }
                 startForeground(1, builder.build());
             }
-        }, 100);
+        };
+
+        mHandler.postDelayed( mRunnable, 100);
 
        Callback callback1 = new Callback() {
             @Override
@@ -222,22 +239,22 @@ public class ServiceAutoBackup extends Service {
         }
     }
 
-    public void onStopBackup(){
-        if(myAsyncTaskCode.getStatus() == AsyncTask.Status.RUNNING){
-            JSONArray jsArray = new JSONArray(mListSelected);
-
-            Log.d("Tiennvh", "onStopBackup: "+jsArray);
-        }
-    }
-
     public void onDownload(){
+        senNotification();
 
     }
+    callbackService mCallbackService;
 
+    public void setmCallbackService(callbackService mCallbackService) {
+        this.mCallbackService = mCallbackService;
+    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+    public interface callbackService{
+        void callbackFinish(ArrayList<FileItem> mListSelected);
     }
 
 }

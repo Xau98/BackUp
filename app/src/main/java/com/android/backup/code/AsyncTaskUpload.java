@@ -73,7 +73,6 @@ public class AsyncTaskUpload extends AsyncTask<Void, String , String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        Log.d("Tiennvh", "onPostExecute: "+s);
         String namePath = handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName +".txt";
         RequestToServer.upload(mContext, mPathsave ,"uploadfile",namePath, mCallback, mTotalDetail);
         handleFile.deleteFile(handleFile.PATH_ROOT+"/CompressionFile/"+ mConvertName+".zip");

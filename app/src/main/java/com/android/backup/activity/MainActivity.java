@@ -188,11 +188,11 @@ public class MainActivity extends Activity {
                         try {
                             JSONObject Jobject0 = new JSONObject(mJsonData);
                             String result = Jobject0.get("result").toString();
-                            Log.d("Tiennvh"+result, "handleMessage: "+Jobject0.get("success")+"//"+(Jobject0.get("success").toString().equals("true")));
                         if (Jobject0.get("success").toString().equals("true")) {
                                 JSONObject Jobject = new JSONObject(result);
                                 SharedPreferences.Editor editor = mPreferences.edit();
                                 editor.putString("id", Jobject.getString("_id"));
+                                Log.d("Tiennvh", "handleMessage: "+Jobject.getString("_id"));
                                 editor.putString("name", Jobject.getString("username"));
                                 editor.putString("token", Jobject.getString("token"));
                                 editor.putString("email", Jobject.getString("email"));
@@ -220,15 +220,17 @@ public class MainActivity extends Activity {
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 e.printStackTrace();
                 Log.d("Tiennvh", "onFailure: "+ e);
-                mProgressBar.setVisibility(View.GONE);
+                setVisibilityProgressBar(View.GONE);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if (response.isSuccessful()) {
-                    Log.d("Tiennvh", "isSuccessful: ");
                     mJsonData = response.body().string();
+                    Log.d("Tiennvh", "isSuccessful: "+mJsonData);
                     mHandler.sendEmptyMessage(MSG_LOGIN);
+                }else {
+                    setVisibilityProgressBar(View.GONE);
                 }
             }
         };
@@ -238,12 +240,13 @@ public class MainActivity extends Activity {
         if(id_account != null && token != null){
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put("id", id_account);
+                jsonObject.put("_id", id_account);
                 jsonObject.put("token", token);
                 String path = "logintoken";
                 RequestToServer.post(path, jsonObject, mCallback);
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                Log.d("Tiennvh3", "onCreate: "+e);
             }
         }else {
             mProgressBar.setVisibility(View.GONE);
@@ -534,5 +537,17 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, HomePage.class);
         intent.putExtra("token", "This value one for ActivityTwo ");
         startActivityForResult(intent, 2405);
+    }
+
+    public void setVisibilityProgressBar(int type){
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                if(mProgressBar!=null)
+                mProgressBar.setVisibility(type);
+
+            }
+        });
     }
 }

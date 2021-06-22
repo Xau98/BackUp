@@ -72,6 +72,9 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
                     fos.write(response.body().bytes());
                     fos.close();
                     new AsyncTaskdecrypt().execute();
+                }else {
+                    mProgressBar.setProgress(0);
+                    mStatusLoad.setText("Download thất bại ");
                 }
             }
         };
@@ -82,7 +85,6 @@ public class AsyncTaskDownload extends AsyncTask<Void , String , String> {
         try {
             jsonObject.put("id", id);
             jsonObject.put("token", token);
-            Log.d("Tiennvh", "onPreExecute: "+mFileItem.getPath());
             jsonObject.put("path", mFileItem.getPath());
             //mPathfile = handleFile.PATH_ROOT+"/CompressionFile/"+ mFileItem+".zip";
             RequestToServer.post("download", jsonObject,  mCallback1);

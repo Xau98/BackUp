@@ -35,12 +35,18 @@ public class RequestToServer {
     public static void post(String path, JSONObject jsonObject, Callback callback) {
         OkHttpClient client = new OkHttpClient();
         String url = AD_SERVER + path;
+        try {
+
+
         RequestBody requestBody = RequestBody.create(JSON, String.valueOf(jsonObject));
         Request request = new Request.Builder()
                 .url(url)
                 .method("POST", requestBody)
                 .build();
         client.newCall(request).enqueue(callback);
+    }catch (Exception e){
+        Log.d("Tiennvh", "post: "+e);
+    }
     }
 
 // Bkav TienNVh : Method GET
